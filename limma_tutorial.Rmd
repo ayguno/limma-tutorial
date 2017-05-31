@@ -22,8 +22,8 @@ ___
 
 # Introduction and Summary
 
-```{r}
-library(limma)
+```{r,cache=TRUE}
+
 data.mat <- readRDS("log_expression.rds")
 ```
 
@@ -36,40 +36,58 @@ In a typical one sample comparison, we ask the following question:
 
 First we check if the data is (median) normalized (this is important):
 ```{r}
-apply(data.mat,2,median) # It is median normalized
+normalization.check <- apply(data.mat,2,median) # It is median normalized
+is.normal <- data.frame(Conditions = names(normalization.check),Median = normalization.check)
+knitr::kable(is.normal, align = "c", format = "pandoc",row.names = F)
 ```
+
 Therefore, all columns (experiment conditions) have a median ratio of zero and data looks median normalized (centered) around the zero.
 
 ##lmFit() and eBayes()
 
-lmFit() and eBayes() are the workhorse functions for the limma. lmFit() enables us to fit the linear models of interest, for **each gene** in our data set. The model structure is different from the common formula interface we are used to use in lm(), and models are typically specified by using a so called **design matrix**. lm Fit() returns a model object with a type of **MArrayLM**.
+**lmFit()** and **eBayes()** are the workhorse functions of the limma. lmFit() enables us to fit the linear models of interest, for **each gene** in our data set. The model structure is different from the common formula interface we are used to use in lm(), and models are typically specified by using a so called **design matrix**. lm Fit() returns a model object with a type of **MArrayLM**.
 
 eBayes() takes the model object returned by lmFit() and performs emprical Bayes moderation. This involves moderating the standard errors towards a common value obtained from the entire data set. This is importnat for making our inferences robust given the number of independent replicates (biological replicates) in the experiments are often very low (usually 2 for proteomics). eBayes also computes moderated versions of t and F statistics to evaluate differential expression.
 
 ## Fitting one-sample comparisons without specifying a design matrix
 
-Note that without defining a design matrix, the default is a unit vector, in other words, lmFit() will assume all columns (samples) are replicates, it will get their average
-and perform a one-sample t-test with a H.NULL = 0, it will print the parameters, including 
-Ave Exp and logFC (which is AveExp)
+Note that without defining a design matrix, the default is a unit vector, in other words, lmFit() will assume all columns (samples) are replicates, it will get their average and perform a one-sample t-test with a H.NULL = 0, it will print the parameters.
+
+For one sample comparisons (essentially one-sample Moderated t-test), it is more intuiutive to feed a pure data matrix into the lmFit that exclusively contains the biological replicates of a particular **class**. (Class is a treatment category, which is represented by biological replicates.)
+
+### Extracting the data.martix for a particular class
+
+For example in our data set:
+
+- FS20160721_OA_E15_polUB_Fractions..128C.126..Tetra_Ub_K48_iDUB.Control	
+- FS20160721_OA_E15_polUB_Fractions..130C.131..Tetra_Ub_K48_iDUB.Control	
+
+columns are biological replicates of the experimental treatment class: ** Tetra_Ub_K48_iDUB.**
+
+**Question: now our question becomes: Which log gene expression ratios (relative to a reference (control or denominator)) is different from zero? in Tetra_Ub_K48_iDUB condition (class).**
+
+Let's extract the relevant data for this class:
+
+```{r}
+data.K48 <- data.mat[,grepl("128C.126..Tetra_Ub_K48_iDUB.Control|130C.131..Tetra_Ub_K48_iDUB.Control",names(data.mat))]
+row.names(data.K48) <- data.mat$accession_number # We stick the gene names into the expression set as row.names
+```
+
+Note that we stick the gene names (or accession numbers) into the expression set as row.names to the data.matrix before fitting the model. This is not required, but makes the analysis more intuitive.
+
+### Using lmFit to fit the linear model for each gene ID
+
+Using lmFit without a design matrix is very simple:
+
+```{r}
+library(limma)
+fit <- lmFit(data.K48)
+```
+
+
+
+
+
+
+
 Note that by default topTable performs BH adjustment
-
-# Since design matrix is complicated to implement, we need to use lmFit() after extracting individual replicates
-# from the original data.
-
-# For example:
-
-# FS20160721_OA_E15_polUB_Fractions..128C.126..Tetra_Ub_K48_iDUB.Control	
-# FS20160721_OA_E15_polUB_Fractions..130C.131..Tetra_Ub_K48_iDUB.Control	
-
-# are replicates of Tetra_Ub_K48_iDUB.
-
-data.mat <- d[,grepl("128C.126..Tetra_Ub_K48_iDUB.Control|130C.131..Tetra_Ub_K48_iDUB.Control",names(d))]
-
-row.names(data.mat) <- d$accession_number # We stick the gene names into the expression set as row.names
-
-apply(data.mat,2,median) # It is median normalized
-
-
-# Using lmFit to fit the linear model for each gene ID
-
-fit <- lmFit(data.mat)
