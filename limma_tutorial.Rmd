@@ -85,6 +85,17 @@ fit <- lmFit(data.K48)
 ```
 
 
+### Perform emprical Bayes moderation:
+
+We use the model returned from lmFit to perform emprical Bayes moderation:
+
+```{r}
+fit <- eBayes(fit, robust = TRUE)
+```
+
+- Note that robust = TRUE makes the inference more robust against outlier sample variances.
+
+
 
 
 
