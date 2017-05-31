@@ -159,6 +159,8 @@ $(document).ready(function () {
 <li><a href="#fitting-one-sample-comparisons-without-specifying-a-design-matrix"><span class="toc-section-number">2.2</span> Fitting one-sample comparisons without specifying a design matrix</a><ul>
 <li><a href="#extracting-the-data.martix-for-a-particular-class"><span class="toc-section-number">2.2.1</span> Extracting the data.martix for a particular class</a></li>
 <li><a href="#using-lmfit-to-fit-the-linear-model-for-each-gene-id"><span class="toc-section-number">2.2.2</span> Using lmFit to fit the linear model for each gene ID</a></li>
+<li><a href="#perform-emprical-bayes-moderation"><span class="toc-section-number">2.2.3</span> Perform emprical Bayes moderation:</a></li>
+<li><a href="#toptable-function-extract-the-table-of-gene-sets-from-the-fitted-model"><span class="toc-section-number">2.2.4</span> topTable() function: Extract the table of gene sets from the fitted model</a></li>
 </ul></li>
 </ul></li>
 </ul>
@@ -277,11 +279,11 @@ knitr<span class="op">::</span><span class="kw">kable</span>(is.normal, <span cl
 </li>
 <li>FS20160721_OA_E15_polUB_Fractions..130C.131..Tetra_Ub_K48_iDUB.Control</li>
 </ul>
-<p>columns are biological replicates of the experimental treatment class: ** Tetra_Ub_K48_iDUB.**</p>
-<p><strong>Question: now our question becomes: Which log gene expression ratios (relative to a reference (control or denominator)) is different from zero? in Tetra_Ub_K48_iDUB condition (class).</strong></p>
+<p>columns are biological replicates of the experimental treatment class: <strong>Tetra_Ub_K48_iDUB</strong></p>
+<p><strong>Question: now our question becomes: Which MEAN log gene expression ratios (relative to a reference (control or denominator)) is different from zero in Tetra_Ub_K48_iDUB condition (class)?</strong></p>
 <p>Let’s extract the relevant data for this class:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">data.K48 &lt;-<span class="st"> </span>data.mat[,<span class="kw">grepl</span>(<span class="st">&quot;128C.126..Tetra_Ub_K48_iDUB.Control|130C.131..Tetra_Ub_K48_iDUB.Control&quot;</span>,<span class="kw">names</span>(data.mat))]
-<span class="kw">row.names</span>(data.K48) &lt;-<span class="st"> </span>data.mat<span class="op">$</span>accession_number <span class="co"># We stick the gene names into the expression set as row.names</span></code></pre></div>
+<span class="kw">row.names</span>(data.K48) &lt;-<span class="st"> </span><span class="kw">row.names</span>(data.mat) <span class="co"># We stick the gene names into the expression set as row.names</span></code></pre></div>
 <p>Note that we stick the gene names (or accession numbers) into the expression set as row.names to the data.matrix before fitting the model. This is not required, but makes the analysis more intuitive.</p>
 </div>
 <div id="using-lmfit-to-fit-the-linear-model-for-each-gene-id" class="section level3">
@@ -289,7 +291,158 @@ knitr<span class="op">::</span><span class="kw">kable</span>(is.normal, <span cl
 <p>Using lmFit without a design matrix is very simple:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(limma)
 fit &lt;-<span class="st"> </span><span class="kw">lmFit</span>(data.K48)</code></pre></div>
-<p>Note that by default topTable performs BH adjustment</p>
+</div>
+<div id="perform-emprical-bayes-moderation" class="section level3">
+<h3><span class="header-section-number">2.2.3</span> Perform emprical Bayes moderation:</h3>
+<p>We use the model returned from lmFit to perform emprical Bayes moderation:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fit &lt;-<span class="st"> </span><span class="kw">eBayes</span>(fit, <span class="dt">robust =</span> <span class="ot">TRUE</span>)</code></pre></div>
+<ul>
+<li>Note that robust = TRUE makes the inference more robust against outlier sample variances.</li>
+</ul>
+</div>
+<div id="toptable-function-extract-the-table-of-gene-sets-from-the-fitted-model" class="section level3">
+<h3><span class="header-section-number">2.2.4</span> topTable() function: Extract the table of gene sets from the fitted model</h3>
+<p>In other words, this is the step where we extract the results of differential expression test from the model fit.</p>
+<p>topTable() extracts a table of the top-ranked genes from a linear model fit.</p>
+<ul>
+<li>We set: number = nrow(data.mat) to get all genes</li>
+<li>We set: sort.by = “none” to not sort the results and keep the original gene set order</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">significance &lt;-<span class="st"> </span><span class="kw">topTable</span>(fit, <span class="dt">number =</span> <span class="kw">nrow</span>(data.K48), <span class="dt">sort.by =</span> <span class="st">&quot;none&quot;</span>, <span class="dt">adjust.method =</span> <span class="st">&quot;fdr&quot;</span>,
+                         <span class="dt">confint =</span> <span class="ot">TRUE</span>)
+
+knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">head</span>(significance), <span class="dt">align =</span> <span class="st">&quot;c&quot;</span>, <span class="dt">format =</span> <span class="st">&quot;pandoc&quot;</span>,<span class="dt">row.names =</span> T)</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th align="center">logFC</th>
+<th align="center">CI.L</th>
+<th align="center">CI.R</th>
+<th align="center">AveExpr</th>
+<th align="center">t</th>
+<th align="center">P.Value</th>
+<th align="center">adj.P.Val</th>
+<th align="center">B</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>P35579</td>
+<td align="center">0.0590</td>
+<td align="center">-0.1522154</td>
+<td align="center">0.2702154</td>
+<td align="center">0.0590</td>
+<td align="center">0.5744773</td>
+<td align="center">0.5706341</td>
+<td align="center">0.9982850</td>
+<td align="center">-6.326635</td>
+</tr>
+<tr class="even">
+<td>P35580</td>
+<td align="center">0.0755</td>
+<td align="center">-0.1324311</td>
+<td align="center">0.2834311</td>
+<td align="center">0.0755</td>
+<td align="center">0.7446565</td>
+<td align="center">0.4628452</td>
+<td align="center">0.9982850</td>
+<td align="center">-6.215038</td>
+</tr>
+<tr class="odd">
+<td>P35580-2</td>
+<td align="center">0.0775</td>
+<td align="center">-0.1304311</td>
+<td align="center">0.2854311</td>
+<td align="center">0.0775</td>
+<td align="center">0.7643825</td>
+<td align="center">0.4511995</td>
+<td align="center">0.9982850</td>
+<td align="center">-6.200271</td>
+</tr>
+<tr class="even">
+<td>P35580-5</td>
+<td align="center">0.0775</td>
+<td align="center">-0.1304311</td>
+<td align="center">0.2854311</td>
+<td align="center">0.0775</td>
+<td align="center">0.7643825</td>
+<td align="center">0.4511995</td>
+<td align="center">0.9982850</td>
+<td align="center">-6.200271</td>
+</tr>
+<tr class="odd">
+<td>Q7Z406-6</td>
+<td align="center">0.0465</td>
+<td align="center">-0.1628116</td>
+<td align="center">0.2558116</td>
+<td align="center">0.0465</td>
+<td align="center">0.4559505</td>
+<td align="center">0.6520926</td>
+<td align="center">0.9982850</td>
+<td align="center">-6.388140</td>
+</tr>
+<tr class="even">
+<td>Q9Y4I1</td>
+<td align="center">0.1015</td>
+<td align="center">-0.1070766</td>
+<td align="center">0.3100766</td>
+<td align="center">0.1015</td>
+<td align="center">0.9981053</td>
+<td align="center">0.3270184</td>
+<td align="center">0.9912848</td>
+<td align="center">-5.997534</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">data.frame</span>(<span class="kw">head</span>(fit<span class="op">$</span>coefficients)), <span class="dt">align =</span> <span class="st">&quot;c&quot;</span>, <span class="dt">format =</span> <span class="st">&quot;pandoc&quot;</span>,<span class="dt">row.names =</span> T)</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th align="center">x1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>P35579</td>
+<td align="center">0.0590</td>
+</tr>
+<tr class="even">
+<td>P35580</td>
+<td align="center">0.0755</td>
+</tr>
+<tr class="odd">
+<td>P35580-2</td>
+<td align="center">0.0775</td>
+</tr>
+<tr class="even">
+<td>P35580-5</td>
+<td align="center">0.0775</td>
+</tr>
+<tr class="odd">
+<td>Q7Z406-6</td>
+<td align="center">0.0465</td>
+</tr>
+<tr class="even">
+<td>Q9Y4I1</td>
+<td align="center">0.1015</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note that the estimated coefficients for the model are simply the average expression of the replicates.</strong></p>
+<div id="interpreting-the-output-table" class="section level4">
+<h4><span class="header-section-number">2.2.4.1</span> Interpreting the output table</h4>
+<p>Note that we are fitting a linear model for every gene in our data.matrix, therefore this implicitly means that we performed many hypothesis tests at the same time and our alpha-level needs to be re-adjusted (i.e: our nominal p-values associated with each test has to be adjusted).</p>
+<ul>
+<li><p>Note that by default topTable performs BH adjustment for the nominal p-values, we can set this as ‘fdr’ to adjust p-values by controlling the false discovery rate.</p></li>
+<li><strong>P-values</strong> are the raw (nominal) p-values associated with these regression parameters.</li>
+<li><strong>t</strong> is moderated t-statistic (omitted for topTableF).</li>
+<li><strong>logFC</strong> is the estimate of the log2-fold-change corresponding to the effect or contrast (for topTableF there may be several columns of log-fold-changes).</li>
+<li><strong>CI.L and CI.R</strong> left and right limits of the confidence interval for logFC.</li>
+<li><p><strong>AveExpr</strong> is average log2-expression for the gene over all conditions in the data matrix.</p></li>
+</ul>
+</div>
 </div>
 </div>
 </div>

@@ -4,7 +4,7 @@ author: "Ozan Aygun"
 date: "May 31, 2017"
 output:
   html_document:
-    depth: 3
+    depth: 4
     highlight: tango
     number_sections: yes
     theme: cerulean
@@ -62,15 +62,15 @@ For example in our data set:
 - FS20160721_OA_E15_polUB_Fractions..128C.126..Tetra_Ub_K48_iDUB.Control	
 - FS20160721_OA_E15_polUB_Fractions..130C.131..Tetra_Ub_K48_iDUB.Control	
 
-columns are biological replicates of the experimental treatment class: ** Tetra_Ub_K48_iDUB.**
+columns are biological replicates of the experimental treatment class: **Tetra_Ub_K48_iDUB**
 
-**Question: now our question becomes: Which log gene expression ratios (relative to a reference (control or denominator)) is different from zero? in Tetra_Ub_K48_iDUB condition (class).**
+**Question: now our question becomes: Which MEAN log gene expression ratios (relative to a reference (control or denominator)) is different from zero in Tetra_Ub_K48_iDUB condition (class)?**
 
 Let's extract the relevant data for this class:
 
 ```{r}
 data.K48 <- data.mat[,grepl("128C.126..Tetra_Ub_K48_iDUB.Control|130C.131..Tetra_Ub_K48_iDUB.Control",names(data.mat))]
-row.names(data.K48) <- data.mat$accession_number # We stick the gene names into the expression set as row.names
+row.names(data.K48) <- row.names(data.mat) # We stick the gene names into the expression set as row.names
 ```
 
 Note that we stick the gene names (or accession numbers) into the expression set as row.names to the data.matrix before fitting the model. This is not required, but makes the analysis more intuitive.
@@ -95,10 +95,39 @@ fit <- eBayes(fit, robust = TRUE)
 
 - Note that robust = TRUE makes the inference more robust against outlier sample variances.
 
+### topTable() function: Extract the table of gene sets from the fitted model
+
+In other words, this is the step where we extract the results of differential expression test from the model fit.
+
+topTable() extracts a table of the top-ranked genes from a linear model fit.
+
+- We set: number = nrow(data.mat) to get all genes
+- We set: sort.by = "none" to not sort the results and keep the original gene set order
+
+```{r}
+
+significance <- topTable(fit, number = nrow(data.K48), sort.by = "none", adjust.method = "fdr",
+                         confint = TRUE)
+
+knitr::kable(head(significance), align = "c", format = "pandoc",row.names = T)
+knitr::kable(data.frame(head(fit$coefficients)), align = "c", format = "pandoc",row.names = T)
+
+```
+
+**Note that the estimated coefficients for the model are simply the average expression of the replicates.**
+
+
+####Interpreting the output table
+
+Note that we are fitting a linear model for every gene in our data.matrix, therefore this implicitly means that we performed many hypothesis tests at the same time and our alpha-level needs to be re-adjusted (i.e: our nominal p-values associated with each test has to be adjusted).
+
+- Note that by default topTable performs BH adjustment for the nominal p-values, we can set this as 'fdr' to adjust p-values by controlling the false discovery rate.
+
+- **P-values** are the raw (nominal) p-values associated with these regression parameters.
+- **t** is moderated t-statistic (omitted for topTableF).
+- **logFC** is the estimate of the log2-fold-change corresponding to the effect or contrast (for topTableF there may be several columns of log-fold-changes).
+- **CI.L and CI.R** left and right limits of the confidence interval for logFC.
+- **AveExpr** is average log2-expression for the gene over all conditions in the data matrix.
 
 
 
-
-
-
-Note that by default topTable performs BH adjustment
