@@ -189,6 +189,27 @@ row.names(design.matrix) <- colnames(data.Mono_vs_K48)
 design.matrix
 ```
 
+Note the interpretation of the design matrix, the meaning of 1's and 0's.
+
+First, it is always helpful to write the model equation we are fitting:
+
+**Y = B0 + B1 * GroupK48** 
+
+Where;
+
+- Y: mean log expression ratio for a given group:
+- For Reference group (mono); Y = B0 + B1 * 0 = B0 (Since GroupK48 = 0, remember design matrix)
+- For Comparison group (K48); Y = B0 + B1 * 1 = B0 + B1 (Since GroupK48 = 1, remember design matrix)
+
+Therefore, the design matrix reflects that with 1's and 0's for each class (or condition, or column). 
+
+In other words,
+
+- Intercept is 1 for all classes, because we have and intercept in all cases
+- GroupK48 is 1 for K4 group and 0 for the Mono group, meaning that GroupK48 has also a slope
+
+Now, things are getting more intuitive in terms of a standard linear regression model.
+
 ## Fitting the two-comparison model by using lmFit() and eBayes()
 
 We fit the model by using lmFit() as we performed in the one-sample analysis:
@@ -244,9 +265,54 @@ K48_mean <- head(apply(data.mat[,c(2,4)],1,mean))
 K48_mean - Mono_mean
 ```
 
-# Note that these group mean differences are indeed the coefficient estimates of the model for the
-# Comparison group (in this case it is K48 group)
-Mono_mean
-# Note that the mean expression levels in the reference group (in this case it is the Mono group) corresponds to the model intercept
+Note that these group mean differences are indeed the coefficient estimates of the model for the Comparison group (in this case it is K48 group)
 
-# Therefore, for each gene we are essentially fitting the following model:
+- How about intercept?
+
+```{r}
+Mono_mean
+```
+
+Note that the mean expression levels in the reference group (in this case it is the Mono group) corresponds to the model intercept.
+
+## Equation of the fitted model and its interpretation
+
+Therefore, for each gene we are essentially fitting the following model:
+
+
+**Y = B0 + B1 * GroupK48** 
+
+Where;
+
+- Y: mean log expression ratio for a given group:
+- For Reference group (mono); Y = B0 + B1 * 0 = B0 (Since GroupK48 = 0, remember design matrix)
+- For Comparison group (K48); Y = B0 + B1 * 1 = B0 + B1 (Since GroupK48 = 1, remember design matrix)
+
+- B0: intercept: mean expression ratio for the reference group (relative to control)
+- B1: slope (coefficient): mean log expression difference (mean(logFC)) between the comparison - reference group for a given gene
+
+Therefore, 
+
+1. We are fitting N (nrow(data.matrix)) of such models for each gene,
+2. Then making parameters robust by applying embrical Bayes shrinkage method
+3. Adjusting the p-values associated with the parameter of interest to make robust inferences (control alpha-level) 
+
+- Note that the coefficient of interest in this model is B1, which is the mean log expression difference between two groups.
+
+- Note that the null hypothesis of interest in this model is B1 != 0 (MeanComparison - MeanRef)
+
+Therefore, the design matrix is nothing but a collection of dummy variables, and the way we define Comparison group as = 1 has consequences on the interpretation of the coefficients.
+
+## Conclusions
+
+```{r}
+two.group.significance[two.group.significance$adj.P.Val <0.05,]
+```
+
+We couldn't find any genes whose expression ratio is significantly different between K48 and Mono UB.
+
+Distribution of p-values also suggest the overall non-significance of the changes:
+
+```{r}
+hist(two.group.significance$P.Value)
+```
