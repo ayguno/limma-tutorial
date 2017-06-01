@@ -178,5 +178,15 @@ design.matrix <- model.matrix(~ Group) # Note the use of model.matrix() function
 design.matrix
 ```
 
+- Notice that the first column represents the intercept of the model, which is "Mono" group (which is Mono_vs_Control log expression ratios for each gene).
+
+- The second column is the "slope" of the model, labelled as "GroupK48" (which is actually K48_vs_Mono log expression ratios for each gene)
+
+Note that the order of the samples (rows in the design matrix) has to match the order of the Experiments (columns in the data.matrix). We can attach them to make the matrix more intuitive. This is not needed, but useful to specify:
+
+```{r}
+row.names(design.matrix) <- colnames(data.Mono_vs_K48)
+design.matrix
+```
 
 
