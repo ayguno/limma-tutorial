@@ -121,13 +121,48 @@ knitr::kable(data.frame(head(fit$coefficients)), align = "c", format = "pandoc",
 
 Note that we are fitting a linear model for every gene in our data.matrix, therefore this implicitly means that we performed many hypothesis tests at the same time and our alpha-level needs to be re-adjusted (i.e: our nominal p-values associated with each test has to be adjusted).
 
-- Note that by default topTable performs BH adjustment for the nominal p-values, we can set this as 'fdr' to adjust p-values by controlling the false discovery rate.
-
+- Note that by default topTable performs BH adjustment for the nominal p-values, we can set this as **'fdr'** to adjust p-values by controlling the false discovery rate.
 - **P-values** are the raw (nominal) p-values associated with these regression parameters.
 - **t** is moderated t-statistic (omitted for topTableF).
 - **logFC** is the estimate of the log2-fold-change corresponding to the effect or contrast (for topTableF there may be several columns of log-fold-changes).
 - **CI.L and CI.R** left and right limits of the confidence interval for logFC.
 - **AveExpr** is average log2-expression for the gene over all conditions in the data matrix.
+
+# Two-group comprisons
+
+In a typical two sample comparison, we ask the following question:
+
+**Which mean log gene expression ratios (relative to a reference (control or denominator)) is different from between one condition to another (e.g: WT and Mutant)? (Assuming that all ratios were normalized)**
+
+**Another way to formulate this question is: for which genes the mean log expression ratio difference between two conditions is different from zero?**
+
+Note that this is a typical two-sample comparison, we typically handle by a two-sample t-test of linear regression where we have a continuous outcome and categorical predictor.
+
+## Extracting the data.matrix for two groups:
+
+In order to perform a two-sample comparison, we need to define a design matrix. Let's say we would like to compare **Mono UB** v.s **Tetra_Ub_K48_iDUB** conditions. Each of these data available as ratios to a common reference (Control):
+
+First we get the relevant data for two groups:
+
+- column names for the two independent biological replicates of Mono-UB group:
+
+FS20160721_OA_E15_polUB_Fractions..127C.126..Mono_Ub_iDUB.Control	
+FS20160721_OA_E15_polUB_Fractions..129C.131..Mono_Ub_iDUB.Control
+
+
+- column names for the two independent biological replicates of K48 group:
+
+FS20160721_OA_E15_polUB_Fractions..128C.126..Tetra_Ub_K48_iDUB.Control	
+FS20160721_OA_E15_polUB_Fractions..130C.131..Tetra_Ub_K48_iDUB.Control	
+
+```{r}
+data.Mono_vs_K48 <- data.mat[,grepl("FS20160721_OA_E15_polUB_Fractions..127C.126..Mono_Ub_iDUB.Control|FS20160721_OA_E15_polUB_Fractions..129C.131..Mono_Ub_iDUB.Control|128C.126..Tetra_Ub_K48_iDUB.Control|130C.131..Tetra_Ub_K48_iDUB.Control",names(data.mat))]
+```
+
+row.names(data.mat) <- d$accession_number # We stick the gene names into the expression set as row.names
+names(data.mat)
+
+
 
 
 
