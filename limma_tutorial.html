@@ -163,6 +163,12 @@ $(document).ready(function () {
 <li><a href="#toptable-function-extract-the-table-of-gene-sets-from-the-fitted-model"><span class="toc-section-number">2.2.4</span> topTable() function: Extract the table of gene sets from the fitted model</a></li>
 </ul></li>
 </ul></li>
+<li><a href="#two-group-comprisons"><span class="toc-section-number">3</span> Two-group comprisons</a><ul>
+<li><a href="#extracting-the-data.matrix-for-two-groups"><span class="toc-section-number">3.1</span> Extracting the data.matrix for two groups:</a></li>
+<li><a href="#design-matrix-for-the-two-sample-comparison"><span class="toc-section-number">3.2</span> Design matrix for the two-sample comparison</a></li>
+<li><a href="#fitting-the-two-comparison-model-by-using-lmfit-and-ebayes"><span class="toc-section-number">3.3</span> Fitting the two-comparison model by using lmFit() and eBayes()</a></li>
+</ul></li>
+<li><a href="#obtain-the-results"><span class="toc-section-number">4</span> Obtain the results:</a></li>
 </ul>
 </div>
 
@@ -435,16 +441,98 @@ knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">he
 <h4><span class="header-section-number">2.2.4.1</span> Interpreting the output table</h4>
 <p>Note that we are fitting a linear model for every gene in our data.matrix, therefore this implicitly means that we performed many hypothesis tests at the same time and our alpha-level needs to be re-adjusted (i.e: our nominal p-values associated with each test has to be adjusted).</p>
 <ul>
-<li><p>Note that by default topTable performs BH adjustment for the nominal p-values, we can set this as ‘fdr’ to adjust p-values by controlling the false discovery rate.</p></li>
+<li>Note that by default topTable performs BH adjustment for the nominal p-values, we can set this as <strong>‘fdr’</strong> to adjust p-values by controlling the false discovery rate.</li>
 <li><strong>P-values</strong> are the raw (nominal) p-values associated with these regression parameters.</li>
 <li><strong>t</strong> is moderated t-statistic (omitted for topTableF).</li>
 <li><strong>logFC</strong> is the estimate of the log2-fold-change corresponding to the effect or contrast (for topTableF there may be several columns of log-fold-changes).</li>
 <li><strong>CI.L and CI.R</strong> left and right limits of the confidence interval for logFC.</li>
-<li><p><strong>AveExpr</strong> is average log2-expression for the gene over all conditions in the data matrix.</p></li>
+<li><strong>AveExpr</strong> is average log2-expression for the gene over all conditions in the data matrix.</li>
 </ul>
 </div>
 </div>
 </div>
+</div>
+<div id="two-group-comprisons" class="section level1">
+<h1><span class="header-section-number">3</span> Two-group comprisons</h1>
+<p>In a typical two sample comparison, we ask the following question:</p>
+<p><strong>Which mean log gene expression ratios (relative to a reference (control or denominator)) is different from between one condition to another (e.g: WT and Mutant)? (Assuming that all ratios were normalized)</strong></p>
+<p><strong>Another way to formulate this question is: for which genes the mean log expression ratio difference between two conditions is different from zero?</strong></p>
+<p>Note that this is a typical two-sample comparison, we typically handle by a two-sample t-test of linear regression where we have a continuous outcome and categorical predictor.</p>
+<div id="extracting-the-data.matrix-for-two-groups" class="section level2">
+<h2><span class="header-section-number">3.1</span> Extracting the data.matrix for two groups:</h2>
+<p>In order to perform a two-sample comparison, we need to define a design matrix. Let’s say we would like to compare <strong>Mono UB</strong> v.s <strong>Tetra_Ub_K48_iDUB</strong> conditions. Each of these data available as ratios to a common reference (Control):</p>
+<p>First we get the relevant data for two groups:</p>
+<ul>
+<li>column names for the two independent biological replicates of Mono-UB group:</li>
+</ul>
+<p>FS20160721_OA_E15_polUB_Fractions..127C.126..Mono_Ub_iDUB.Control<br />
+FS20160721_OA_E15_polUB_Fractions..129C.131..Mono_Ub_iDUB.Control</p>
+<ul>
+<li>column names for the two independent biological replicates of K48 group:</li>
+</ul>
+<p>FS20160721_OA_E15_polUB_Fractions..128C.126..Tetra_Ub_K48_iDUB.Control<br />
+FS20160721_OA_E15_polUB_Fractions..130C.131..Tetra_Ub_K48_iDUB.Control</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">data.Mono_vs_K48 &lt;-<span class="st"> </span>data.mat[,<span class="kw">grepl</span>(<span class="st">&quot;FS20160721_OA_E15_polUB_Fractions..127C.126..Mono_Ub_iDUB.Control|FS20160721_OA_E15_polUB_Fractions..129C.131..Mono_Ub_iDUB.Control|128C.126..Tetra_Ub_K48_iDUB.Control|130C.131..Tetra_Ub_K48_iDUB.Control&quot;</span>,<span class="kw">names</span>(data.mat))]</code></pre></div>
+<p>Again, we stick the gene names (or accession numbers) into the expression set as row.names to the data.matrix before fitting the model. This is not required, but makes the analysis more intuitive.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">row.names</span>(data.Mono_vs_K48) &lt;-<span class="st"> </span>data.mat<span class="op">$</span>accession_number <span class="co"># We stick the gene names into the expression set as row.names</span>
+<span class="kw">names</span>(data.Mono_vs_K48)</code></pre></div>
+<pre><code>## [1] &quot;FS20160721_OA_E15_polUB_Fractions..127C.126..Mono_Ub_iDUB.Control&quot;     
+## [2] &quot;FS20160721_OA_E15_polUB_Fractions..128C.126..Tetra_Ub_K48_iDUB.Control&quot;
+## [3] &quot;FS20160721_OA_E15_polUB_Fractions..129C.131..Mono_Ub_iDUB.Control&quot;     
+## [4] &quot;FS20160721_OA_E15_polUB_Fractions..130C.131..Tetra_Ub_K48_iDUB.Control&quot;</code></pre>
+</div>
+<div id="design-matrix-for-the-two-sample-comparison" class="section level2">
+<h2><span class="header-section-number">3.2</span> Design matrix for the two-sample comparison</h2>
+<p>Note that the order of the columns in the data.martix are critical. They represent the individual biological replicates of the groups. We need to construct the design matrix to properly match each of the replicate to its respective class.</p>
+<p>Therefore, note that order of group labels are the same as what samples refer to in design matrix (respective column names)</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Group &lt;-<span class="st"> </span><span class="kw">factor</span>(<span class="kw">c</span>(<span class="st">&quot;Mono&quot;</span>,<span class="st">&quot;K48&quot;</span>,<span class="st">&quot;Mono&quot;</span>,<span class="st">&quot;K48&quot;</span>), <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;Mono&quot;</span>,<span class="st">&quot;K48&quot;</span>)) <span class="co"># Note the order of group #labels that match the columns in the data matrix. Order the levels so that they appear as #(reference, comparison)</span>
+design.matrix &lt;-<span class="st"> </span><span class="kw">model.matrix</span>(<span class="op">~</span><span class="st"> </span>Group) <span class="co"># Note the use of model.matrix() function</span>
+design.matrix</code></pre></div>
+<pre><code>##   (Intercept) GroupK48
+## 1           1        0
+## 2           1        1
+## 3           1        0
+## 4           1        1
+## attr(,&quot;assign&quot;)
+## [1] 0 1
+## attr(,&quot;contrasts&quot;)
+## attr(,&quot;contrasts&quot;)$Group
+## [1] &quot;contr.treatment&quot;</code></pre>
+<ul>
+<li><p>Notice that the first column represents the intercept of the model, which is “Mono” group (which is Mono_vs_Control log expression ratios for each gene).</p></li>
+<li><p>The second column is the “slope” of the model, labelled as “GroupK48” (which is actually K48_vs_Mono log expression ratios for each gene)</p></li>
+</ul>
+<p>Note that the order of the samples (rows in the design matrix) has to match the order of the Experiments (columns in the data.matrix). We can attach them to make the matrix more intuitive. This is not needed, but useful to specify:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">row.names</span>(design.matrix) &lt;-<span class="st"> </span><span class="kw">colnames</span>(data.Mono_vs_K48)
+design.matrix</code></pre></div>
+<pre><code>##                                                                        (Intercept)
+## FS20160721_OA_E15_polUB_Fractions..127C.126..Mono_Ub_iDUB.Control                1
+## FS20160721_OA_E15_polUB_Fractions..128C.126..Tetra_Ub_K48_iDUB.Control           1
+## FS20160721_OA_E15_polUB_Fractions..129C.131..Mono_Ub_iDUB.Control                1
+## FS20160721_OA_E15_polUB_Fractions..130C.131..Tetra_Ub_K48_iDUB.Control           1
+##                                                                        GroupK48
+## FS20160721_OA_E15_polUB_Fractions..127C.126..Mono_Ub_iDUB.Control             0
+## FS20160721_OA_E15_polUB_Fractions..128C.126..Tetra_Ub_K48_iDUB.Control        1
+## FS20160721_OA_E15_polUB_Fractions..129C.131..Mono_Ub_iDUB.Control             0
+## FS20160721_OA_E15_polUB_Fractions..130C.131..Tetra_Ub_K48_iDUB.Control        1
+## attr(,&quot;assign&quot;)
+## [1] 0 1
+## attr(,&quot;contrasts&quot;)
+## attr(,&quot;contrasts&quot;)$Group
+## [1] &quot;contr.treatment&quot;</code></pre>
+</div>
+<div id="fitting-the-two-comparison-model-by-using-lmfit-and-ebayes" class="section level2">
+<h2><span class="header-section-number">3.3</span> Fitting the two-comparison model by using lmFit() and eBayes()</h2>
+<p>We fit the model by using lmFit() as we performed in the one-sample analysis:</p>
+<p>Note we pass the design matrix into the lmFit, by using design = design.matrix argument.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fit.two.group &lt;-<span class="st"> </span><span class="kw">lmFit</span>(data.Mono_vs_K48,<span class="dt">design =</span> design.matrix)</code></pre></div>
+<p>Then we perform eBayes moderation for the models;</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fit.two.group &lt;-<span class="st"> </span><span class="kw">eBayes</span>(fit.two.group, <span class="dt">robust =</span> <span class="ot">TRUE</span>)</code></pre></div>
+</div>
+</div>
+<div id="obtain-the-results" class="section level1">
+<h1><span class="header-section-number">4</span> Obtain the results:</h1>
+<p>two.group.significance &lt;- topTable(fit.two.group, coef = “GroupK48”, adjust.method = “fdr”, number = nrow(data.mat), sort.by = “none”)</p>
 </div>
 
 

@@ -162,7 +162,7 @@ data.Mono_vs_K48 <- data.mat[,grepl("FS20160721_OA_E15_polUB_Fractions..127C.126
 Again, we stick the gene names (or accession numbers) into the expression set as row.names to the data.matrix before fitting the model. This is not required, but makes the analysis more intuitive.
 
 ```{r}
-row.names(data.Mono_vs_K48) <- d$accession_number # We stick the gene names into the expression set as row.names
+row.names(data.Mono_vs_K48) <- data.mat$accession_number # We stick the gene names into the expression set as row.names
 names(data.Mono_vs_K48)
 ```
 
@@ -189,4 +189,64 @@ row.names(design.matrix) <- colnames(data.Mono_vs_K48)
 design.matrix
 ```
 
+## Fitting the two-comparison model by using lmFit() and eBayes()
 
+We fit the model by using lmFit() as we performed in the one-sample analysis:
+
+Note we pass the design matrix into the lmFit, by using design = design.matrix argument.
+
+```{r}
+fit.two.group <- lmFit(data.Mono_vs_K48,design = design.matrix)
+````
+
+Then we perform eBayes moderation for the models;
+
+```{r}
+fit.two.group <- eBayes(fit.two.group, robust = TRUE)
+```
+
+Finally, we obtain the results:
+
+```{r}
+two.group.significance <- topTable(fit.two.group, coef = "GroupK48", adjust.method = "fdr",
+                                   number = nrow(data.mat), sort.by = "none", confint = TRUE)
+```
+
+## Interpretation of the model and coefficients for the two-sample comparison:
+
+The results matrix returned by the topTable:
+
+```{r}
+head(two.group.significance)
+```
+
+Note that there are two expr values: logFC and AveExpr for each gene (and this time they look different!)
+
+The coefficients returned by the model:
+
+```{r}
+head(fit.two.group$coefficients)
+```
+
+- Note that the coeffcients for K48 condition (Which is actually K48 vs Mono) are the same as logFC.
+
+- Note that the AveExpr refers to the average expression of each gene in the data set, regardless of groups. This is not the estimate used and tested in our model:
+
+```{r}
+head(apply(data.mat,1,mean))
+```
+
+Intuitively, logFC is defined as the mean difference between the groups (the estimate (or coefficient of our test of interest:
+
+```{r}
+Mono_mean <- head(apply(data.mat[,c(1,3)],1,mean))
+K48_mean <- head(apply(data.mat[,c(2,4)],1,mean))
+K48_mean - Mono_mean
+```
+
+# Note that these group mean differences are indeed the coefficient estimates of the model for the
+# Comparison group (in this case it is K48 group)
+Mono_mean
+# Note that the mean expression levels in the reference group (in this case it is the Mono group) corresponds to the model intercept
+
+# Therefore, for each gene we are essentially fitting the following model:
