@@ -168,7 +168,15 @@ names(data.Mono_vs_K48)
 
 ## Design matrix for the two-sample comparison
 
+Note that the order of the columns in the data.martix are critical. They represent the individual biological replicates of the groups. We need to construct the design matrix to properly match each of the replicate to its respective class.
 
+Therefore, note that order of group labels are the same as what samples refer to in design matrix (respective column names)
+
+```{r}
+Group <- factor(c("Mono","K48","Mono","K48"), levels = c("Mono","K48")) # Note the order of group #labels that match the columns in the data matrix. Order the levels so that they appear as #(reference, comparison)
+design.matrix <- model.matrix(~ Group) # Note the use of model.matrix() function
+design.matrix
+```
 
 
 
