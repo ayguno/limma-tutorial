@@ -159,8 +159,14 @@ FS20160721_OA_E15_polUB_Fractions..130C.131..Tetra_Ub_K48_iDUB.Control
 data.Mono_vs_K48 <- data.mat[,grepl("FS20160721_OA_E15_polUB_Fractions..127C.126..Mono_Ub_iDUB.Control|FS20160721_OA_E15_polUB_Fractions..129C.131..Mono_Ub_iDUB.Control|128C.126..Tetra_Ub_K48_iDUB.Control|130C.131..Tetra_Ub_K48_iDUB.Control",names(data.mat))]
 ```
 
-row.names(data.mat) <- d$accession_number # We stick the gene names into the expression set as row.names
-names(data.mat)
+Again, we stick the gene names (or accession numbers) into the expression set as row.names to the data.matrix before fitting the model. This is not required, but makes the analysis more intuitive.
+
+```{r}
+row.names(data.Mono_vs_K48) <- d$accession_number # We stick the gene names into the expression set as row.names
+names(data.Mono_vs_K48)
+```
+
+## Design matrix for the two-sample comparison
 
 
 
