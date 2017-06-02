@@ -393,7 +393,7 @@ Let's interpret the contrast.matrix:
 - Note that this time we have 1, -1 and 0 in the matrix.
 - Each column is a contrast we asked to perform.
 - Each row is a Group.
-- For each comparison, the contributing groups are either 1 or -1 depending on the order 
+- For each comparison, the contributing groups are either 1 or -1 depending on the order.**This order has consequences for the correct interpretation of the parameters or estimates(see below).** 
 - The group that is not involved in a particular contrast is 0
 
 Therefore, this is quite intuitive as well.
@@ -419,17 +419,35 @@ contrasts.fit() will take two arguments:
 We will update the model fit object by using contrasts.fit() function:
 
 ```{r}
-
-
-
+fit.3.group <- contrasts.fit(fit = fit.3.group, contrasts = contrast.matrix)
 ```
 
-
+Now the model object contains the parameters for the requested contrasts (i.e: 3 individual model fits). We next perform eBayes moderation of the parameters as usual:
 
 ```{r}
 fit.3.group <- eBayes(fit.3.group,robust = TRUE)
-three.group.significance <- topTable(fit.3.group, coef = "GroupK48", adjust.method = "fdr",
-                                   number = nrow(data.mat), sort.by = "none", confint = TRUE)
+```
+
+### Extracting the results using topTable: note we have multiple models for group-wise comparisons now!
+
+This is especially important to understand: we now have as many models as the number of contrasts.
+
+Let's look at the coefficients of the fitted model object and compare with that of the two-group comparison:
+
+```{r}
+head(fit.3.group$coefficients)
+head(fit.two.group$coefficients)
+```
+
+Notice that for each gene, we fitted 3 models and in this case the intercept is not specified, since we included the contrasts. The coefficients estimated using the GroupK48-GroupMono comparison are exactly the same as the coefficients we obtained in the 
+
+```{r}
+K48_Mono.significance <- topTable(fit.3.group, coef = "GroupK48 - GroupMono", adjust.method = "fdr",number = nrow(data.mat), sort.by = "none", confint = TRUE)
+
+K63_Mono.significance <- topTable(fit.3.group, coef = "GroupK63 - GroupMono", adjust.method = "fdr",number = nrow(data.mat), sort.by = "none", confint = TRUE)
+
+K63_K48.significance <- topTable(fit.3.group, coef = "GroupK63 - GroupK48", adjust.method = "fdr",number = nrow(data.mat), sort.by = "none", confint = TRUE)
+
 ```
 
 
