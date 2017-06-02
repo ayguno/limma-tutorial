@@ -364,7 +364,73 @@ Once again we will need our design matrix that has to properly match the data.ma
 ```{r}
 names(data.3.groups)
 Group <- factor(c("Mono","K63","K48","Mono","K63","K48"), levels = c("Mono","K48","K63")) # Note the order of group labels that match the columns in the data matrix. Order the levels so that they appear as (reference, comparison)
-design.matrix <- model.matrix(~ Group) # Note the use of model.matrix() function
+design.matrix <- model.matrix(~ 0 + Group) # Note the different use of model.matrix() function
+row.names(design.matrix) <- colnames(data.3.groups) # Not needed but good practice
 design.matrix
 ```
+
+**Again, notice the 1's and 0's in the design matrix. In this case the matrix is different from the two-sample comparison (Note how we used model.matrix(~ 0 + Group), to prepare the design matrix). This is because we would like to perform ALL pair-wise comparisons. The structure and interpretation of the design matrix is therefore different. In this case, each group is simply defined by a 1.**
+
+## Fitting the model with several groups using lmFit() and eBayes() 
+
+### prepare contrast matrix
+
+In this case, our primary goal is to make **pairwise comparisons between all 3 groups**. Therefore, we will need to prepare another matrix, so called **contrast matrix** to define which contrasts we would like to perform. Fortunately, limma package provides makeContrasts() function for this purpose.
+
+makeContrasts() essentially takes two arguments:
+
+1. A vector of dashed objects that defines the contrasts, these names should match with the group names in the design matrix. As long as they match the column(group) names in the design matrix, they do not need to be quoted.
+2. levels = this is the design matrix we prepared for the pairwise tests above.
+
+```{r}
+contrast.matrix <- makeContrasts(GroupK48 - GroupMono,GroupK63 - GroupMono, GroupK63 - GroupK48,
+                                 levels = design.matrix)
+contrast.matrix
+```
+
+Let's interpret the contrast.matrix:
+
+- Note that this time we have 1, -1 and 0 in the matrix.
+- Each column is a contrast we asked to perform.
+- Each row is a Group.
+- For each comparison, the contributing groups are either 1 or -1 depending on the order 
+- The group that is not involved in a particular contrast is 0
+
+Therefore, this is quite intuitive as well.
+
+Next, we need to fit the model by using the design matrix:
+
+```{r}
+fit.3.group <- lmFit(data.3.groups,design = design.matrix)
+```
+
+
+### Using contrasts.fit() to fit model for the comparisons 
+
+This is another new step for us which we didn't have to use in the two-group comparisons. Here, unless we use the contrasts.fit() function, we can not get the desired results for pair-wise comparisons.
+
+Given a linear model fit we prepared,contrasts.fit() computes estimated coefficients and standard errors for **a given set of contrasts.**
+
+contrasts.fit() will take two arguments:
+
+- The model fit object we prepared
+- The contrast.matrix we prepared
+
+We will update the model fit object by using contrasts.fit() function:
+
+```{r}
+
+
+
+```
+
+
+
+```{r}
+fit.3.group <- eBayes(fit.3.group,robust = TRUE)
+three.group.significance <- topTable(fit.3.group, coef = "GroupK48", adjust.method = "fdr",
+                                   number = nrow(data.mat), sort.by = "none", confint = TRUE)
+```
+
+
 
