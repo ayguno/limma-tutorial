@@ -439,7 +439,9 @@ head(fit.3.group$coefficients)
 head(fit.two.group$coefficients)
 ```
 
-Notice that for each gene, we fitted 3 models and in this case the intercept is not specified, since we included the contrasts. The coefficients estimated using the GroupK48-GroupMono comparison are exactly the same as the coefficients we obtained in the 
+Notice that for each gene, we fitted 3 models and in this case the intercept is not specified, since we included the contrasts. The coefficients estimated using the GroupK48-GroupMono comparison are exactly the same as the coefficients we obtained in the two-group comparison model, where we fitted a single model comparing only these two groups.
+
+Therefore, in order to fetch the results of these pair-wise contrasts individually, we need to use **coef =** argument in the topTable and pass the names of the contrasts in the contrast matrix, this time as **strings**.
 
 ```{r}
 K48_Mono.significance <- topTable(fit.3.group, coef = "GroupK48 - GroupMono", adjust.method = "fdr",number = nrow(data.mat), sort.by = "none", confint = TRUE)
@@ -450,5 +452,36 @@ K63_K48.significance <- topTable(fit.3.group, coef = "GroupK63 - GroupK48", adju
 
 ```
 
+
+### Use decideTests() function to check if null is rejected for a given gene
+
+This is very useful. We can identify which genes are significantly differentially expressed for each contrast from a fit object containing p-values and test statistics. A number of different multiple testing strategies are offered that adjust for multiple testing down the genes as well as across contrasts for each gene.
+
+We can specify 
+
+- a p.valule cut off for the null hypothesis test B1 = 0 for each gene, for each contrast. Defaults is 0.05.
+- a method for multiple hypothesis testing correction (defaults to "BH")
+
+```{r}
+results.3.group <- decideTests(fit.3.group, adjust.method = "fdr", p.value = 0.05)
+head(results.3.group)
+```
+
+In this output, we can have all the genes as row.names, and all contrasts we requested, as columns. If the null hypothesis for a given gene, for a given comparison is rejected, it will be labelled as 1, otherwise it will be rejected as 0.
+
+### Use vennDiagram() function to visualize the results
+
+Another neat function limma provides is the vennDiagram(), which computes classification counts and draws a Venn diagram. We pass the results object created by the decideTests() function. We can also specify additional aestthetic arguments:
+
+```{r, fig.width= 10,fig.height=10}
+vennDiagram(results.3.group, circle.col = c("navy","red","green"), lwd = 2)
+```
+
+That's quite useful to see the big picture. In this case, nothing came out as significant in any of the comparisons we performed. Note that the total number of the genes in the data.matrix is printed in the diagram. We can also change the names of the contrasts, using the **names=** argument, make sure they match the level order of the contrasts:
+
+```{r, fig.width= 8,fig.height=8}
+vennDiagram(results.3.group, circle.col = c("navy","red","green"), lwd = 2,
+            names = c("K48 vs Mono","K63 vs Mono", "K63 vs K48"))
+```
 
 
