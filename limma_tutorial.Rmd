@@ -136,7 +136,7 @@ In a typical two sample comparison, we ask the following question:
 
 **Another way to formulate this question is: for which genes the mean log expression ratio difference between two conditions is different from zero?**
 
-Note that this is a typical two-sample comparison, we typically handle by a two-sample t-test of linear regression where we have a continuous outcome and categorical predictor.
+Note that this is a typical two-sample comparison, we typically handle by a two-sample t-test or linear regression where we have a continuous outcome and categorical predictor.
 
 ## Extracting the data.matrix for two groups:
 
