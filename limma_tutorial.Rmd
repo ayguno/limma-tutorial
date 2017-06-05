@@ -373,7 +373,7 @@ design.matrix
 
 ## Fitting the model with several groups using lmFit() and eBayes() 
 
-### prepare contrast matrix
+### prepare contrast matrix using  makeContrasts() function:
 
 In this case, our primary goal is to make **pairwise comparisons between all 3 groups**. Therefore, we will need to prepare another matrix, so called **contrast matrix** to define which contrasts we would like to perform. Fortunately, limma package provides makeContrasts() function for this purpose.
 

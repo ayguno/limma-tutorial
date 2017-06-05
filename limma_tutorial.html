@@ -175,7 +175,7 @@ $(document).ready(function () {
 <li><a href="#preparing-the-data-matrix"><span class="toc-section-number">4.1</span> Preparing the data matrix</a></li>
 <li><a href="#design-matrix-for-several-groups"><span class="toc-section-number">4.2</span> Design matrix for several groups</a></li>
 <li><a href="#fitting-the-model-with-several-groups-using-lmfit-and-ebayes"><span class="toc-section-number">4.3</span> Fitting the model with several groups using lmFit() and eBayes()</a><ul>
-<li><a href="#prepare-contrast-matrix"><span class="toc-section-number">4.3.1</span> prepare contrast matrix</a></li>
+<li><a href="#prepare-contrast-matrix-using-makecontrasts-function"><span class="toc-section-number">4.3.1</span> prepare contrast matrix using makeContrasts() function:</a></li>
 <li><a href="#using-contrasts.fit-to-fit-model-for-the-comparisons"><span class="toc-section-number">4.3.2</span> Using contrasts.fit() to fit model for the comparisons</a></li>
 <li><a href="#extracting-the-results-using-toptable-note-we-have-multiple-models-for-group-wise-comparisons-now"><span class="toc-section-number">4.3.3</span> Extracting the results using topTable: note we have multiple models for group-wise comparisons now!</a></li>
 <li><a href="#use-decidetests-function-to-check-if-null-is-rejected-for-a-given-gene"><span class="toc-section-number">4.3.4</span> Use decideTests() function to check if null is rejected for a given gene</a></li>
@@ -761,8 +761,8 @@ design.matrix</code></pre></div>
 </div>
 <div id="fitting-the-model-with-several-groups-using-lmfit-and-ebayes" class="section level2">
 <h2><span class="header-section-number">4.3</span> Fitting the model with several groups using lmFit() and eBayes()</h2>
-<div id="prepare-contrast-matrix" class="section level3">
-<h3><span class="header-section-number">4.3.1</span> prepare contrast matrix</h3>
+<div id="prepare-contrast-matrix-using-makecontrasts-function" class="section level3">
+<h3><span class="header-section-number">4.3.1</span> prepare contrast matrix using makeContrasts() function:</h3>
 <p>In this case, our primary goal is to make <strong>pairwise comparisons between all 3 groups</strong>. Therefore, we will need to prepare another matrix, so called <strong>contrast matrix</strong> to define which contrasts we would like to perform. Fortunately, limma package provides makeContrasts() function for this purpose.</p>
 <p>makeContrasts() essentially takes two arguments:</p>
 <ol style="list-style-type: decimal">
