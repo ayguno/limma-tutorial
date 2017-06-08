@@ -45,7 +45,7 @@ Therefore, all columns (experiment conditions) have a median ratio of zero and d
 
 ##lmFit() and eBayes()
 
-**lmFit()** and **eBayes()** are the workhorse functions of the limma. lmFit() enables us to fit the linear models of interest, for **each gene** in our data set. The model structure is different from the common formula interface we are used to use in lm(), and models are typically specified by using a so called **design matrix**. lm Fit() returns a model object with a type of **MArrayLM**.
+**lmFit()** and **eBayes()** are the workhorse functions of the limma. lmFit() enables us to fit the linear models of interest, for **each gene** in our data set. The model structure is different from the common formula interface we are used to use in lm(), and models are typically specified by using a so called **design matrix**. lmFit() returns a model object with a type of **MArrayLM**.
 
 eBayes() takes the model object returned by lmFit() and performs emprical Bayes moderation. This involves moderating the standard errors towards a common value obtained from the entire data set. This is importnat for making our inferences robust given the number of independent replicates (biological replicates) in the experiments are often very low (usually 2 for proteomics). eBayes also computes moderated versions of t and F statistics to evaluate differential expression.
 
