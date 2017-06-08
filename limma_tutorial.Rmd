@@ -520,3 +520,5 @@ sum(three.group.Ftest)
 
 This is more likely to be true given the p-value histogram. This is also consistent with our pairwise comparisons where we haven't found any gene that was significantly varying in ANY of the conditions we had in our experiment.
 
+# Factorial designs
+
