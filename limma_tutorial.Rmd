@@ -522,3 +522,20 @@ This is more likely to be true given the p-value histogram. This is also consist
 
 # Factorial designs
 
+Factorial designs are constructed when we have more than one experimental dimension being varied and each combination of treatment conditions is observed. 
+
+A classic example for this situation is the experimental designs where we have two factor variables:
+
+**Factor1 : Strain**
+
+- Wild-Type
+- Mutant
+
+**Factor2: Treatment**
+
+- Untreated
+- Treated
+
+Note that it is possible to have more than two levels for each factor. But at the moment we have this example for simplicity.
+
+
