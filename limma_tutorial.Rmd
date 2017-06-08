@@ -363,13 +363,13 @@ Once again we will need our design matrix that has to properly match the data.ma
 
 ```{r}
 names(data.3.groups)
-Group <- factor(c("Mono","K63","K48","Mono","K63","K48"), levels = c("Mono","K48","K63")) # Note the order of group labels that match the columns in the data matrix. Order the levels so that they appear as (reference, comparison)
+Group <- factor(c("Mono","K63","K48","Mono","K63","K48"), levels = c("Mono","K48","K63")) # Note the order of group labels that match the columns in the data matrix. 
 design.matrix <- model.matrix(~ 0 + Group) # Note the different use of model.matrix() function
 row.names(design.matrix) <- colnames(data.3.groups) # Not needed but good practice
 design.matrix
 ```
 
-**Again, notice the 1's and 0's in the design matrix. In this case the matrix is different from the two-sample comparison (Note how we used model.matrix(~ 0 + Group), to prepare the design matrix). This is because we would like to perform ALL pair-wise comparisons. The structure and interpretation of the design matrix is therefore different. In this case, each group is simply defined by a 1.**
+**Again, notice the 1's and 0's in the design matrix. In this case the matrix is different from the two-sample comparison (Note how we used model.matrix(~ 0 + Group), to prepare the design matrix). This is because we would like to perform ALL pair-wise comparisons. The structure and interpretation of the design matrix is therefore different. In this case, each group is simply defined by a 1. The ~0 in the model.matrix formula argument implies that we don't have an intercept specified by any of the groups.**
 
 ## Fitting the model with several groups using lmFit() and eBayes() 
 
@@ -377,9 +377,9 @@ design.matrix
 
 In this case, our primary goal is to make **pairwise comparisons between all 3 groups**. Therefore, we will need to prepare another matrix, so called **contrast matrix** to define which contrasts we would like to perform. Fortunately, limma package provides makeContrasts() function for this purpose.
 
-makeContrasts() essentially takes two arguments:
+**makeContrasts()** essentially takes two arguments:
 
-1. A vector of dashed objects that defines the contrasts, these names should match with the group names in the design matrix. As long as they match the column(group) names in the design matrix, they do not need to be quoted.
+1. A vector of dashed objects that defines the contrasts, these names should match with the group names in the design matrix. As long as they match the column(group) names in the design matrix, **they do not need to be quoted.**
 2. levels = this is the design matrix we prepared for the pairwise tests above.
 
 ```{r}
@@ -394,16 +394,17 @@ Let's interpret the contrast.matrix:
 - Each column is a contrast we asked to perform.
 - Each row is a Group.
 - For each comparison, the contributing groups are either 1 or -1 depending on the order.**This order has consequences for the correct interpretation of the parameters or estimates(see below).** 
-- The group that is not involved in a particular contrast is 0
+- The group that is not involved in a particular contrast is labelled as 0.
 
 Therefore, this is quite intuitive as well.
 
-Next, we need to fit the model by using the design matrix:
+**Next, we first need to fit the model by using the design matrix:**
 
 ```{r}
 fit.3.group <- lmFit(data.3.groups,design = design.matrix)
 ```
 
+Note that we prepared, but not used the contrast.matrix yet. Next we will use the model we built to fit these contrasts.
 
 ### Using contrasts.fit() to fit model for the comparisons 
 
@@ -411,7 +412,7 @@ This is another new step for us which we didn't have to use in the two-group com
 
 Given a linear model fit we prepared,contrasts.fit() computes estimated coefficients and standard errors for **a given set of contrasts.**
 
-contrasts.fit() will take two arguments:
+**contrasts.fit()** will take two arguments:
 
 - The model fit object we prepared
 - The contrast.matrix we prepared
@@ -430,7 +431,7 @@ fit.3.group <- eBayes(fit.3.group,robust = TRUE)
 
 ### Extracting the results using topTable: note we have multiple models for group-wise comparisons now!
 
-This is especially important to understand: we now have as many models as the number of contrasts.
+This is especially important to understand: **for each gene, we now have as many models as the number of contrasts.**
 
 Let's look at the coefficients of the fitted model object and compare with that of the two-group comparison:
 
@@ -439,7 +440,7 @@ head(fit.3.group$coefficients)
 head(fit.two.group$coefficients)
 ```
 
-Notice that for each gene, we fitted 3 models and in this case the intercept is not specified, since we included the contrasts. The coefficients estimated using the GroupK48-GroupMono comparison are exactly the same as the coefficients we obtained in the two-group comparison model, where we fitted a single model comparing only these two groups.
+Notice that for each gene, we fitted 3 models and in this case the intercept is not specified, since we just included the contrasts. The coefficients estimated using the GroupK48-GroupMono comparison are exactly the same as the coefficients we obtained in the two-group comparison model, where we fitted a single model comparing only these two groups.
 
 Therefore, in order to fetch the results of these pair-wise contrasts individually, we need to use **coef =** argument in the topTable and pass the names of the contrasts in the contrast matrix, this time as **strings**.
 
@@ -457,7 +458,7 @@ K63_K48.significance <- topTable(fit.3.group, coef = "GroupK63 - GroupK48", adju
 
 This is very useful. We can identify which genes are significantly differentially expressed for each contrast from a fit object containing p-values and test statistics. A number of different multiple testing strategies are offered that adjust for multiple testing down the genes as well as across contrasts for each gene.
 
-We can specify 
+We can specify: 
 
 - a p.valule cut off for the null hypothesis test B1 = 0 for each gene, for each contrast. Defaults is 0.05.
 - a method for multiple hypothesis testing correction (defaults to "BH")
@@ -471,7 +472,7 @@ In this output, we can have all the genes as row.names, and all contrasts we req
 
 ### Use vennDiagram() function to visualize the results
 
-Another neat function limma provides is the vennDiagram(), which computes classification counts and draws a Venn diagram. We pass the results object created by the decideTests() function. We can also specify additional aestthetic arguments:
+Another neat function limma provides is the **vennDiagram()**, which computes classification counts and draws a Venn diagram. We pass the results object created by the decideTests() function. We can also specify additional aestthetic arguments:
 
 ```{r, fig.width= 10,fig.height=10}
 vennDiagram(results.3.group, circle.col = c("navy","red","green"), lwd = 2)
@@ -484,4 +485,38 @@ vennDiagram(results.3.group, circle.col = c("navy","red","green"), lwd = 2,
             names = c("K48 vs Mono","K63 vs Mono", "K63 vs K48"))
 ```
 
+## lmFit() F-statistic and relationship to ONE-WAY ANOVA
+
+Believe or not, we performed the usual pairwise t-tests that is typically done after an F-test, or one-way ANOVA. This first pass analysis is performed to ask: **given a set of conditions or groups (more than 2), is the mean significantly different in ANY of the conditions?**
+
+For a set of gene sets, this question is revised to:**"which genes VARY in ANYWAY between the various conditions or groups tested?"** 
+
+This is equivalent to one-way ANOVA, except that the **residual mean squares have been moderated across the genes, since eBayes() was used.**
+
+The results of the F-test (one-way ANOVA) can be readily extracted from the lmFit model object we prepared:
+
+- fit.3.group$F: provides the F statistic for each gene
+- fit.3.group$F.p.value: provides the p-values for the F-test 
+
+```{r, fig.align='center', fig.width=6,fig.height=4}
+hist(fit.3.group$F.p.value, breaks = 300, col = "navy")
+```
+
+The distributon of F-test p-values suggest that essentially not many proteins look like significantly varying across the experiments.
+
+Let's look at how many deemed as significant by the F-test:
+
+```{r}
+three.group.Ftest <- decideTests(fit.3.group$F.p.value, adjust.method = "none", p.value = 0.05)
+sum(three.group.Ftest)
+```
+
+84 genes deemed as significant! But wait, the p-values that come from the model object are not adjusted to account multiple comparisons we performed.Let's perform the correction as needed here:
+
+```{r}
+three.group.Ftest <- decideTests(fit.3.group$F.p.value, adjust.method = "fdr", p.value = 0.05)
+sum(three.group.Ftest)
+```
+
+This is more likely to be true given the p-value histogram. This is also consistent with our pairwise comparisons where we haven't found any gene that was significantly varying in ANY of the conditions we had in our experiment.
 
