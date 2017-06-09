@@ -647,5 +647,25 @@ We now have our design matrix ready.
 This is straightforward since we both have the data matrix and the design matrix prepared:
 
 ```{r}
-
+fit.factorial <- lmFit(d, design = design)
 ```
+
+## Write the model equation and understand interpret the coefficients
+
+As always, writing down the equation is critical. Here we have the following model:
+
+Log Exp Ratio = B0 + B1 * K63 + B2 * K48
+                   + B3 * Mut
+                   + B4 * K63.Mut + K48.Mut
+                   
+where;
+
+- K63 = 1 when the treatment is K63 and 0 otherwise
+- K48 = 1 when the treatment is K48 and 0 otherwise
+- Mut = 1 when the strain is Mutant and 0 if it is Wild-type
+                   
+In our encoded model (design matrix) the coefficients are represented as:
+
+- B0: (Intercept)
+- B1: 
+
