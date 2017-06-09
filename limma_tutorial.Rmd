@@ -531,11 +531,17 @@ A classic example for this situation is the experimental designs where we have t
 - Wild-Type
 - Mutant
 
-**Factor2: Treatment**
+**Factor2: Treatments**
 
-- Untreated
-- Treated
+- Mono
+- K48
+- K63
 
-Note that it is possible to have more than two levels for each factor. But at the moment we have this example for simplicity.
+For each condition, we have expression log ratios that are relative to a common reference or denominator (in this case 'control')
+
+## Extract expression raios from the data matrix
+
+
+
 
 
