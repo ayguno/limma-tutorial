@@ -547,10 +547,9 @@ Questions of interest always come first. This is particularly critical for facto
 
 In this experiment, the relevant questions could be:
 
-1. Which genes respond to a given treatment in Wt cells?
+1. Which genes respond to a given treatment in Wt cells? 
 2. Which genes respond to a given treatment in Mutant cells?
-3. Which genes **respond differently** to a given treatment  
-
+3. Which genes **respond differently** to a given treatment in mutant compared to wild-type cells?  
 
 ## Prepare the data.column - experiment.class match table (Annotation table or Target matrix)
 
@@ -567,13 +566,86 @@ The table is intuitively constructed. In limma, this table is also called as "ta
 
 From this target matrix we can understand that there are 12 samples in total. Each Strain class is represented by 3 treatments and each of them have 2 **independent** biological replicates.
 
-This **independence** is important because, if we have resampled from the same individual (Wild-type or Mutant), we had to take into account the correlation between the observations. This would necessiate using mixed effect models. 
+This **independence** is important because if we had resampled from the same individual (Wild-type or Mutant), we had to take into account the correlation between the observations. This would necessiate using mixed effect models. 
 
 ## Set the factor levels correctly to define reference levels
 
-It is especially important to define the factor levels correctly based 
+It is especially important to define the factor levels correctly based on the questions we are interested in. Let's recall the overall objective and our questions. This time try to write these questions in the form of their relations with the factor classes:
 
+**We are interested in whether K48 or K63 treatments are changing any genes beyond the mono, and whether this reponse is different in Mutant cells compared to Wild-type.**
 
+1. Which genes respond to a given treatment in Wt cells? (**Relates to: WT.K48 vs WT.mono, WT.K63 vs WT.mono, two seperate comparisons**)
+2. Which genes respond to a given treatment in Mutant cells? (**Relates to: Mut.K48 vs Mut.mono, Mut.K63 vs Mut.mono comparisons, two seperate comparisons**)
+3. Which genes **respond differently** to a given treatment in mutant compared to wild-type cells? (**Relates to the difference of differences**: 
 
+- For K48 treatment: [Mut.K48 - Mut.mono] - [WT.K48 - WT.mono]
+- For K63 treatment: [Mut.K63 - Mut.mono] - [WT.K63 - WT.mono]
 
+Both of these contrasts will be represented as **interaction terms** in our model.
 
+ )  
+ 
+ Therfore, our reference levels for two factors are:
+ 
+ - Strain: Wt
+ - Treatment: Mono
+
+```{r}
+annotations$Treatment <- factor(annotations$Treatment, levels = c("Mono","K63","K48"))
+annotations$Strain <- factor(annotations$Strain, levels = c("Wt","Mut"))
+```
+
+## Prepare the data matrix
+
+It is not difficult to extract the relevant data columns since we already know them from the target matrix:
+
+```{r}
+d <- data.mat[,which(colnames(data.mat) %in% annotations$Column.Name)]
+```
+
+Note that the gene IDs are already attached as row names in the data. Otherwise, we would be attaching them.
+
+Make sure the order of the columns in the data matrix is the same as the order in the annotation (target) matrix. Otherwise, we need to make sure there are in the same order:
+
+```{r}
+identical(colnames(d),as.character(annotations$Column.Name))
+```
+
+Great! Out data matrix is ready for modeling.
+
+## Prepare the design matrix
+
+We previously used model.matrix() function for fitting two or multiple group comparisons. Here the formula interface is a litte different:
+
+```{r}
+design <- model.matrix( ~ Treatment * Strain, data = annotations)
+design
+```
+
+As we notice from the design matrix we have:
+
+- main effects of each treatment (except the baseline treatment)
+- main effect of the mutant strain (not the reference Wt strain)
+- interaction terms of K63 and K48 treatments with the mutant strain
+- intercept
+
+Note that the intercept represents the mean logFC for a gene in the both reference categories, which is TreatmentMono.StrainWt. All other coefficients are relative to this term.
+
+Before going into the details of the model, we need one edit in the column names. The colon (:) in the interaction term names needs to be replaced. This is because the downstream function make.contrasts() can not handle these types of special charecters in column names.
+
+We replace ":" by "." in the column names of the design matrix:
+
+```{r}
+colnames(design) <- sapply(colnames(design), function(x){gsub(":",".",x)})
+design
+```
+
+We now have our design matrix ready.
+
+## Fit the overall model using lmFit()
+
+This is straightforward since we both have the data matrix and the design matrix prepared:
+
+```{r}
+
+```
