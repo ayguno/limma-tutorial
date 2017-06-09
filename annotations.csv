@@ -1,0 +1,13 @@
+Column.Name,Treatment,Strain
+FS20160721_OA_E15_polUB_Fractions..127C.126..Mono_Ub_iDUB.Control,Mono,Wt
+FS20160721_OA_E15_polUB_Fractions..127C.131..Mono_Ub_iDUB.Control,Mono,Mut
+FS20160721_OA_E15_polUB_Fractions..128N.126..Tetra_Ub_K63_iDUB.Control,K63,Wt
+FS20160721_OA_E15_polUB_Fractions..128N.131..Tetra_Ub_K63_iDUB.Control,K63,Mut
+FS20160721_OA_E15_polUB_Fractions..128C.126..Tetra_Ub_K48_iDUB.Control,K48,Wt
+FS20160721_OA_E15_polUB_Fractions..128C.131..Tetra_Ub_K48_iDUB.Control,K48,Mut
+FS20160721_OA_E15_polUB_Fractions..129C.126..Mono_Ub_iDUB.Control,Mono,Mut
+FS20160721_OA_E15_polUB_Fractions..129C.131..Mono_Ub_iDUB.Control,Mono,Wt
+FS20160721_OA_E15_polUB_Fractions..130N.126..Tetra_Ub_K63_iDUB.Control,K63,Mut
+FS20160721_OA_E15_polUB_Fractions..130N.131..Tetra_Ub_K63_iDUB.Control,K63,Wt
+FS20160721_OA_E15_polUB_Fractions..130C.126..Tetra_Ub_K48_iDUB.Control,K48,Mut
+FS20160721_OA_E15_polUB_Fractions..130C.131..Tetra_Ub_K48_iDUB.Control,K48,Wt
