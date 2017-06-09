@@ -667,5 +667,20 @@ where;
 In our encoded model (design matrix) the coefficients are represented as:
 
 - B0: (Intercept)
-- B1: 
+- B1: TreatmentK63
+- B2: TreatmentK48
+- B3: StrainMut
+- B4: TreatmentK63.StrainMut
+- B5: TreatmentK48.StrainMut
+
+These coefficients have their own interpretations:
+
+- **B0: (Intercept):** mean logFC in the TreatmentMono and StrainWt 
+- **B1: TreatmentK63:** mean logFC difference of [TreatmentK63 - TreatmentMono] in StrainWt (TreatmentK63 effect in the Wt strain)  
+- **B2: TreatmentK48:** mean logFC difference of [TreatmentK48 - TreatmentMono] in StrainWt (TreatmentK48 effect in the Wt strain)
+- **B3: StrainMut:** mean logFC difference of [StrainMut - StrainWt] under TreatmentMono condition (strain effect at the baseline treatment level)
+- **B4: TreatmentK63.StrainMut:** mean logFC difference of 
+- **B5: TreatmentK48.StrainMut:** mean logFC difference of 
+
+Note that not all of the questions we are interested in are directly available from the model coefficients. This doesn't mean we can not construct the contrasts we are interested in. We will derive these contrasts to fit exactly the questions we are interested in. The model coefficients and their interpretation we already described will become handy during these operations.
 
