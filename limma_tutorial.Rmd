@@ -742,18 +742,50 @@ In terms of the nicknames in our model, we can re-write:
 
 ___
 
-- Mean.Mut.K48.vs.Mono =  
-- Mean.Mut.K63.vs.Mono = 
+- Mean.Mut.K48.vs.Mono =  TreatmentK48 + TreatmentK48.StrainMut
+- Mean.Mut.K63.vs.Mono =  TreatmentK63 + TreatmentK63.StrainMut
 
 ___
 
-(**Relates to: Mut.K48 vs Mut.mono, Mut.K63 vs Mut.mono comparisons, two seperate comparisons**)
+These will be the basis for our relevant contrasts.
 
-3. Which genes **respond differently** to a given treatment in mutant compared to wild-type cells? (**Relates to the difference of differences**: 
+
+**3. Which genes respond differently to a given treatment in mutant compared to wild-type cells?** 
+
+**Relates to the difference of differences**: 
+
+i.e: For which genes the treatment effects are significantly modulated by the strain type?
 
 - For K48 treatment: [Mut.K48 - Mut.mono] - [WT.K48 - WT.mono]
 - For K63 treatment: [Mut.K63 - Mut.mono] - [WT.K63 - WT.mono]
 
-Both of these contrasts will be represented as **interaction terms** in our model.
+Null hypotheses:
 
- )  
+- H0: [Mean.Mut.K48 - Mean.Mut.mono] - [Mean.Wt.K48 - Mean.Wt.mono] = 0
+- H0: [Mean.Mut.K63 - Mean.Mut.mono] - [Mean.Wt.K63 - Mean.Wt.mono] = 0
+
+or, we can write:
+
+- Mean.Mut.K48.vs.Mono - Mean.Wt.K48.vs.Mono = Mean.K48.Mut.vs.Wt
+- Mean.Mut.K63.vs.Mono - Mean.Wt.K63.vs.Mono = Mean.K63.Mut.vs.Wt
+
+Using the coefficients, these differences are represented as:
+
+- Mean.K48.Mut.vs.Wt = B2 + B5 - B2 = B5
+- Mean.K63.Mut.vs.Wt = B1 + B4 - B1 = B4
+
+In terms of the nicknames in our model, we can re-write:
+
+___
+
+- Mean.K48.Mut.vs.Wt = TreatmentK48.StrainMut
+- Mean.K63.Mut.vs.Wt = TreatmentK63.StrainMut 
+
+___
+
+Note that both of these contrasts are represented as **interaction terms** in our model!
+
+
+## Make the contrasts using makeContrasts()
+
+That was the hard work! The rest is more straightforward. What we need to to do is to define these contrasts in the way that R can understand and prepare from 
