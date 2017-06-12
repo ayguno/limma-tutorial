@@ -788,4 +788,38 @@ Note that both of these contrasts are represented as **interaction terms** in ou
 
 ## Make the contrasts using makeContrasts()
 
-That was the hard work! The rest is more straightforward. What we need to to do is to define these contrasts in the way that R can understand and prepare from 
+That was the hard work! The rest is more straightforward. What we need to to do is to define these contrasts in the way that R can understand and prepare from the design matrix we prepared.
+
+For this purpose, we will use the makeContrasts() function we already used before. Recall that this function essentially needs two arguments; 
+
+1. A list of contrasts (**in fitted model terms(or nicknames)**)
+2. levels = design matrix
+
+Here, we are essentially using this function in the same way. The only difference is that we are going to use **named** contrasts to explicitly define the contrasts inside the function.
+
+**Another important fact to notice about makeContrasts() is the flexible way we define the contrasts inside the function using arithmetic operators. This provides a handy way to virtually engineer various possible combinations of contrasts that might not be immediately available as model coefficients to us. This becomes more critical as the model complexity increases.**
+
+```{r}
+contrasts <- makeContrasts(
+  # Which genes respond to a given treatment in Wt cells?
+  Mean.Wt.K48.vs.Mono = TreatmentK48,
+  Mean.Wt.K63.vs.Mono = TreatmentK63,
+  
+  # Which genes respond to a given treatment in Mut cells?
+  Mean.Mut.K48.vs.Mono =  TreatmentK48 + TreatmentK48.StrainMut,
+  Mean.Mut.K63.vs.Mono =  TreatmentK63 + TreatmentK63.StrainMut,
+  
+  # Which genes respond differently to a given treatment in mutant compared to wild-type cells?
+  Mean.K48.Mut.vs.Wt = TreatmentK48.StrainMut,
+  Mean.K63.Mut.vs.Wt = TreatmentK63.StrainMut 
+  
+, levels = design)
+
+rownames (contrasts)[1] <- '(Intercept)'
+```
+
+Therefore, we have explicitly prepared the 6 contrasts we are interested in. In the subsequent stages, we will fit these contrasts and obtain estimates for them. In each case, we will also obtain an adjusted p-value that tests the null hypothesis associated with each contrast we described above.
+
+##
+
+
