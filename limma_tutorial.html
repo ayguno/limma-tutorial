@@ -183,6 +183,15 @@ $(document).ready(function () {
 </ul></li>
 <li><a href="#lmfit-f-statistic-and-relationship-to-one-way-anova"><span class="toc-section-number">4.4</span> lmFit() F-statistic and relationship to ONE-WAY ANOVA</a></li>
 </ul></li>
+<li><a href="#factorial-designs"><span class="toc-section-number">5</span> Factorial designs</a><ul>
+<li><a href="#define-questions-of-interest"><span class="toc-section-number">5.1</span> Define questions of interest</a></li>
+<li><a href="#prepare-the-data.column---experiment.class-match-table-annotation-table-or-target-matrix"><span class="toc-section-number">5.2</span> Prepare the data.column - experiment.class match table (Annotation table or Target matrix)</a></li>
+<li><a href="#set-the-factor-levels-correctly-to-define-reference-levels"><span class="toc-section-number">5.3</span> Set the factor levels correctly to define reference levels</a></li>
+<li><a href="#prepare-the-data-matrix"><span class="toc-section-number">5.4</span> Prepare the data matrix</a></li>
+<li><a href="#prepare-the-design-matrix"><span class="toc-section-number">5.5</span> Prepare the design matrix</a></li>
+<li><a href="#fit-the-overall-model-using-lmfit"><span class="toc-section-number">5.6</span> Fit the overall model using lmFit()</a></li>
+<li><a href="#write-the-model-equation-and-understand-interpret-the-coefficients"><span class="toc-section-number">5.7</span> Write the model equation and understand interpret the coefficients</a></li>
+</ul></li>
 </ul>
 </div>
 
@@ -887,6 +896,226 @@ K63_K48.significance &lt;-<span class="st"> </span><span class="kw">topTable</sp
 <span class="kw">sum</span>(three.group.Ftest)</code></pre></div>
 <pre><code>## [1] 0</code></pre>
 <p>This is more likely to be true given the p-value histogram. This is also consistent with our pairwise comparisons where we haven’t found any gene that was significantly varying in ANY of the conditions we had in our experiment.</p>
+</div>
+</div>
+<div id="factorial-designs" class="section level1">
+<h1><span class="header-section-number">5</span> Factorial designs</h1>
+<p>Factorial designs are constructed when we have more than one experimental dimension being varied and each combination of treatment conditions is observed.</p>
+<p>A classic example for this situation is the experimental designs where we have two factor variables:</p>
+<p><strong>Factor1 : Strain</strong></p>
+<ul>
+<li>Wild-Type</li>
+<li>Mutant</li>
+</ul>
+<p><strong>Factor2: Treatments</strong></p>
+<ul>
+<li>Mono (baseline treatment)</li>
+<li>K48</li>
+<li>K63</li>
+</ul>
+<p>For each condition, we have expression log ratios that are relative to a common reference or denominator (in this case ‘control’).</p>
+<p><strong>Note that we are interested in whether K48 or K63 treatments are changing any genes beyond the mono, and whether this reponse is different in Mutant cells compared to Wild-type.</strong></p>
+<div id="define-questions-of-interest" class="section level2">
+<h2><span class="header-section-number">5.1</span> Define questions of interest</h2>
+<p>Questions of interest always come first. This is particularly critical for factorial design, since the final model will be quite complex. We need to set up the questions upfront in order to fit and test the relevant contrasts from our model.</p>
+<p>In this experiment, the relevant questions could be:</p>
+<ol style="list-style-type: decimal">
+<li>Which genes respond to a given treatment in Wt cells?</li>
+<li>Which genes respond to a given treatment in Mutant cells?</li>
+<li>Which genes <strong>respond differently</strong> to a given treatment in mutant compared to wild-type cells?</li>
+</ol>
+</div>
+<div id="prepare-the-data.column---experiment.class-match-table-annotation-table-or-target-matrix" class="section level2">
+<h2><span class="header-section-number">5.2</span> Prepare the data.column - experiment.class match table (Annotation table or Target matrix)</h2>
+<p>This is a table we need to prepare to clearly tabulate the relevant data columns in the data matrix, with respect to the classes they belong to. This can be prepared in an R environment or externally using excel and then imported into the R session like I did here.</p>
+<p>Read and look at the structure of the table:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">annotations &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;annotations.csv&quot;</span>, <span class="dt">stringsAsFactors =</span> <span class="ot">TRUE</span>)
+annotations</code></pre></div>
+<pre><code>##                                                               Column.Name
+## 1       FS20160721_OA_E15_polUB_Fractions..127C.126..Mono_Ub_iDUB.Control
+## 2       FS20160721_OA_E15_polUB_Fractions..127C.131..Mono_Ub_iDUB.Control
+## 3  FS20160721_OA_E15_polUB_Fractions..128N.126..Tetra_Ub_K63_iDUB.Control
+## 4  FS20160721_OA_E15_polUB_Fractions..128N.131..Tetra_Ub_K63_iDUB.Control
+## 5  FS20160721_OA_E15_polUB_Fractions..128C.126..Tetra_Ub_K48_iDUB.Control
+## 6  FS20160721_OA_E15_polUB_Fractions..128C.131..Tetra_Ub_K48_iDUB.Control
+## 7       FS20160721_OA_E15_polUB_Fractions..129C.126..Mono_Ub_iDUB.Control
+## 8       FS20160721_OA_E15_polUB_Fractions..129C.131..Mono_Ub_iDUB.Control
+## 9  FS20160721_OA_E15_polUB_Fractions..130N.126..Tetra_Ub_K63_iDUB.Control
+## 10 FS20160721_OA_E15_polUB_Fractions..130N.131..Tetra_Ub_K63_iDUB.Control
+## 11 FS20160721_OA_E15_polUB_Fractions..130C.126..Tetra_Ub_K48_iDUB.Control
+## 12 FS20160721_OA_E15_polUB_Fractions..130C.131..Tetra_Ub_K48_iDUB.Control
+##    Treatment Strain
+## 1       Mono     Wt
+## 2       Mono    Mut
+## 3        K63     Wt
+## 4        K63    Mut
+## 5        K48     Wt
+## 6        K48    Mut
+## 7       Mono    Mut
+## 8       Mono     Wt
+## 9        K63    Mut
+## 10       K63     Wt
+## 11       K48    Mut
+## 12       K48     Wt</code></pre>
+<p>The table is intuitively constructed. In limma, this table is also called as “target matrix”, this is the main matrix we use to construct the design matrix.</p>
+<p>From this target matrix we can understand that there are 12 samples in total. Each Strain class is represented by 3 treatments and each of them have 2 <strong>independent</strong> biological replicates.</p>
+<p>This <strong>independence</strong> is important because if we had resampled from the same individual (Wild-type or Mutant), we had to take into account the correlation between the observations. This would necessiate using mixed effect models.</p>
+</div>
+<div id="set-the-factor-levels-correctly-to-define-reference-levels" class="section level2">
+<h2><span class="header-section-number">5.3</span> Set the factor levels correctly to define reference levels</h2>
+<p>It is especially important to define the factor levels correctly based on the questions we are interested in. Let’s recall the overall objective and our questions. This time try to write these questions in the form of their relations with the factor classes:</p>
+<p><strong>We are interested in whether K48 or K63 treatments are changing any genes beyond the mono, and whether this reponse is different in Mutant cells compared to Wild-type.</strong></p>
+<ol style="list-style-type: decimal">
+<li>Which genes respond to a given treatment in Wt cells? (<strong>Relates to: WT.K48 vs WT.mono, WT.K63 vs WT.mono, two seperate comparisons</strong>)</li>
+<li>Which genes respond to a given treatment in Mutant cells? (<strong>Relates to: Mut.K48 vs Mut.mono, Mut.K63 vs Mut.mono comparisons, two seperate comparisons</strong>)</li>
+<li>Which genes <strong>respond differently</strong> to a given treatment in mutant compared to wild-type cells? (<strong>Relates to the difference of differences</strong>:</li>
+</ol>
+<ul>
+<li>For K48 treatment: [Mut.K48 - Mut.mono] - [WT.K48 - WT.mono]</li>
+<li>For K63 treatment: [Mut.K63 - Mut.mono] - [WT.K63 - WT.mono]</li>
+</ul>
+<p>Both of these contrasts will be represented as <strong>interaction terms</strong> in our model.</p>
+<p>)</p>
+<p>Therfore, our reference levels for two factors are:</p>
+<ul>
+<li>Strain: Wt</li>
+<li>Treatment: Mono</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">annotations<span class="op">$</span>Treatment &lt;-<span class="st"> </span><span class="kw">factor</span>(annotations<span class="op">$</span>Treatment, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;Mono&quot;</span>,<span class="st">&quot;K63&quot;</span>,<span class="st">&quot;K48&quot;</span>))
+annotations<span class="op">$</span>Strain &lt;-<span class="st"> </span><span class="kw">factor</span>(annotations<span class="op">$</span>Strain, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;Wt&quot;</span>,<span class="st">&quot;Mut&quot;</span>))</code></pre></div>
+</div>
+<div id="prepare-the-data-matrix" class="section level2">
+<h2><span class="header-section-number">5.4</span> Prepare the data matrix</h2>
+<p>It is not difficult to extract the relevant data columns since we already know them from the target matrix:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d &lt;-<span class="st"> </span>data.mat[,<span class="kw">which</span>(<span class="kw">colnames</span>(data.mat) <span class="op">%in%</span><span class="st"> </span>annotations<span class="op">$</span>Column.Name)]</code></pre></div>
+<p>Note that the gene IDs are already attached as row names in the data. Otherwise, we would be attaching them.</p>
+<p>Make sure the order of the columns in the data matrix is the same as the order in the annotation (target) matrix. Otherwise, we need to make sure there are in the same order:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">identical</span>(<span class="kw">colnames</span>(d),<span class="kw">as.character</span>(annotations<span class="op">$</span>Column.Name))</code></pre></div>
+<pre><code>## [1] TRUE</code></pre>
+<p>Great! Out data matrix is ready for modeling.</p>
+</div>
+<div id="prepare-the-design-matrix" class="section level2">
+<h2><span class="header-section-number">5.5</span> Prepare the design matrix</h2>
+<p>We previously used model.matrix() function for fitting two or multiple group comparisons. Here the formula interface is a litte different:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">design &lt;-<span class="st"> </span><span class="kw">model.matrix</span>( <span class="op">~</span><span class="st"> </span>Treatment <span class="op">*</span><span class="st"> </span>Strain, <span class="dt">data =</span> annotations)
+design</code></pre></div>
+<pre><code>##    (Intercept) TreatmentK63 TreatmentK48 StrainMut TreatmentK63:StrainMut
+## 1            1            0            0         0                      0
+## 2            1            0            0         1                      0
+## 3            1            1            0         0                      0
+## 4            1            1            0         1                      1
+## 5            1            0            1         0                      0
+## 6            1            0            1         1                      0
+## 7            1            0            0         1                      0
+## 8            1            0            0         0                      0
+## 9            1            1            0         1                      1
+## 10           1            1            0         0                      0
+## 11           1            0            1         1                      0
+## 12           1            0            1         0                      0
+##    TreatmentK48:StrainMut
+## 1                       0
+## 2                       0
+## 3                       0
+## 4                       0
+## 5                       0
+## 6                       1
+## 7                       0
+## 8                       0
+## 9                       0
+## 10                      0
+## 11                      1
+## 12                      0
+## attr(,&quot;assign&quot;)
+## [1] 0 1 1 2 3 3
+## attr(,&quot;contrasts&quot;)
+## attr(,&quot;contrasts&quot;)$Treatment
+## [1] &quot;contr.treatment&quot;
+## 
+## attr(,&quot;contrasts&quot;)$Strain
+## [1] &quot;contr.treatment&quot;</code></pre>
+<p>As we notice from the design matrix we have:</p>
+<ul>
+<li>main effects of each treatment (except the baseline treatment)</li>
+<li>main effect of the mutant strain (not the reference Wt strain)</li>
+<li>interaction terms of K63 and K48 treatments with the mutant strain</li>
+<li>intercept</li>
+</ul>
+<p>Note that the intercept represents the mean logFC for a gene in the both reference categories, which is TreatmentMono.StrainWt. All other coefficients are relative to this term.</p>
+<p>Before going into the details of the model, we need one edit in the column names. The colon (:) in the interaction term names needs to be replaced. This is because the downstream function make.contrasts() can not handle these types of special charecters in column names.</p>
+<p>We replace “:” by “.” in the column names of the design matrix:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">colnames</span>(design) &lt;-<span class="st"> </span><span class="kw">sapply</span>(<span class="kw">colnames</span>(design), <span class="cf">function</span>(x){<span class="kw">gsub</span>(<span class="st">&quot;:&quot;</span>,<span class="st">&quot;.&quot;</span>,x)})
+design</code></pre></div>
+<pre><code>##    (Intercept) TreatmentK63 TreatmentK48 StrainMut TreatmentK63.StrainMut
+## 1            1            0            0         0                      0
+## 2            1            0            0         1                      0
+## 3            1            1            0         0                      0
+## 4            1            1            0         1                      1
+## 5            1            0            1         0                      0
+## 6            1            0            1         1                      0
+## 7            1            0            0         1                      0
+## 8            1            0            0         0                      0
+## 9            1            1            0         1                      1
+## 10           1            1            0         0                      0
+## 11           1            0            1         1                      0
+## 12           1            0            1         0                      0
+##    TreatmentK48.StrainMut
+## 1                       0
+## 2                       0
+## 3                       0
+## 4                       0
+## 5                       0
+## 6                       1
+## 7                       0
+## 8                       0
+## 9                       0
+## 10                      0
+## 11                      1
+## 12                      0
+## attr(,&quot;assign&quot;)
+## [1] 0 1 1 2 3 3
+## attr(,&quot;contrasts&quot;)
+## attr(,&quot;contrasts&quot;)$Treatment
+## [1] &quot;contr.treatment&quot;
+## 
+## attr(,&quot;contrasts&quot;)$Strain
+## [1] &quot;contr.treatment&quot;</code></pre>
+<p>We now have our design matrix ready.</p>
+</div>
+<div id="fit-the-overall-model-using-lmfit" class="section level2">
+<h2><span class="header-section-number">5.6</span> Fit the overall model using lmFit()</h2>
+<p>This is straightforward since we both have the data matrix and the design matrix prepared:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fit.factorial &lt;-<span class="st"> </span><span class="kw">lmFit</span>(d, <span class="dt">design =</span> design)</code></pre></div>
+</div>
+<div id="write-the-model-equation-and-understand-interpret-the-coefficients" class="section level2">
+<h2><span class="header-section-number">5.7</span> Write the model equation and understand interpret the coefficients</h2>
+<p>As always, writing down the equation is critical. Here we have the following model:</p>
+<p>Log Exp Ratio = B0 + B1 * K63 + B2 * K48 + B3 * Mut + B4 * K63.Mut + K48.Mut</p>
+<p>where;</p>
+<ul>
+<li>K63 = 1 when the treatment is K63 and 0 otherwise</li>
+<li>K48 = 1 when the treatment is K48 and 0 otherwise</li>
+<li>Mut = 1 when the strain is Mutant and 0 if it is Wild-type</li>
+</ul>
+<p>In our encoded model (design matrix) the coefficients are represented as:</p>
+<ul>
+<li>B0: (Intercept)</li>
+<li>B1: TreatmentK63</li>
+<li>B2: TreatmentK48</li>
+<li>B3: StrainMut</li>
+<li>B4: TreatmentK63.StrainMut</li>
+<li>B5: TreatmentK48.StrainMut</li>
+</ul>
+<p>These coefficients have their own interpretations:</p>
+<ul>
+<li><strong>B0: (Intercept):</strong> mean logFC in the TreatmentMono and StrainWt</li>
+<li><strong>B1: TreatmentK63:</strong> mean logFC difference of [TreatmentK63 - TreatmentMono] in StrainWt (TreatmentK63 effect in the Wt strain)<br />
+</li>
+<li><strong>B2: TreatmentK48:</strong> mean logFC difference of [TreatmentK48 - TreatmentMono] in StrainWt (TreatmentK48 effect in the Wt strain)</li>
+<li><strong>B3: StrainMut:</strong> mean logFC difference of [StrainMut - StrainWt] under TreatmentMono condition (strain effect at the baseline treatment level)</li>
+<li><strong>B4: TreatmentK63.StrainMut:</strong> mean logFC difference of</li>
+<li><strong>B5: TreatmentK48.StrainMut:</strong> mean logFC difference of</li>
+</ul>
+<p>Note that not all of the questions we are interested in are directly available from the model coefficients. This doesn’t mean we can not construct the contrasts we are interested in. We will derive these contrasts to fit exactly the questions we are interested in. The model coefficients and their interpretation we already described will become handy during these operations.</p>
 </div>
 </div>
 
