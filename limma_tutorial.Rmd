@@ -1,5 +1,5 @@
 ---
-title: "A working tutorial for modeling gene expression by using limma package"
+title: "A working tutorial for modeling protein expression by using limma package"
 author: "Ozan Aygun"
 date: "May 31, 2017"
 output:
@@ -21,6 +21,9 @@ knitr::opts_chunk$set(echo =TRUE, include = TRUE, message = FALSE,warning = FALS
 ___
 
 # Introduction and Summary
+
+
+
 
 ```{r,cache=TRUE}
 
@@ -47,13 +50,13 @@ Therefore, all columns (experiment conditions) have a median ratio of zero and d
 
 **lmFit()** and **eBayes()** are the workhorse functions of the limma. lmFit() enables us to fit the linear models of interest, for **each gene** in our data set. The model structure is different from the common formula interface we are used to use in lm(), and models are typically specified by using a so called **design matrix**. lmFit() returns a model object with a type of **MArrayLM**.
 
-eBayes() takes the model object returned by lmFit() and performs emprical Bayes moderation. This involves moderating the standard errors towards a common value obtained from the entire data set. This is importnat for making our inferences robust given the number of independent replicates (biological replicates) in the experiments are often very low (usually 2 for proteomics). eBayes also computes moderated versions of t and F statistics to evaluate differential expression.
+eBayes() takes the model object returned by lmFit() and performs empirical Bayes moderation. This involves moderating the standard errors towards a common value obtained from the entire data set. This is important for making our inferences robust given the number of independent replicates (biological replicates) in the experiments are often very low (usually 2 for proteomics). eBayes also computes moderated versions of t and F statistics to evaluate differential expression.
 
 ## Fitting one-sample comparisons without specifying a design matrix
 
 Note that without defining a design matrix, the default is a unit vector, in other words, lmFit() will assume all columns (samples) are replicates, it will get their average and perform a one-sample t-test with a H.NULL = 0, it will print the parameters.
 
-For one sample comparisons (essentially one-sample Moderated t-test), it is more intuiutive to feed a pure data matrix into the lmFit that exclusively contains the biological replicates of a particular **class**. (Class is a treatment category, which is represented by biological replicates.)
+For one sample comparisons (essentially one-sample Moderated t-test), it is more intuitive to feed a pure data matrix into the lmFit that exclusively contains the biological replicates of a particular **class**. (Class is a treatment category, which is represented by biological replicates.)
 
 ### Extracting the data.martix for a particular class
 
@@ -87,7 +90,7 @@ fit <- lmFit(data.K48)
 
 ### Perform emprical Bayes moderation:
 
-We use the model returned from lmFit to perform emprical Bayes moderation:
+We use the model returned from lmFit to perform empirical Bayes moderation:
 
 ```{r}
 fit <- eBayes(fit, robust = TRUE)
@@ -168,7 +171,7 @@ names(data.Mono_vs_K48)
 
 ## Design matrix for the two-sample comparison
 
-Note that the order of the columns in the data.martix are critical. They represent the individual biological replicates of the groups. We need to construct the design matrix to properly match each of the replicate to its respective class.
+Note that the order of the columns in the data.matrix are critical. They represent the individual biological replicates of the groups. We need to construct the design matrix to properly match each of the replicate to its respective class.
 
 Therefore, note that order of group labels are the same as what samples they refer to in the design matrix (respective column names).
 
@@ -251,7 +254,7 @@ The coefficients returned by the model:
 head(fit.two.group$coefficients)
 ```
 
-- Note that the coeffcients for K48 condition (Which is actually K48 vs Mono) are the same as logFC.
+- Note that the coefficients for K48 condition (Which is actually K48 vs Mono) are the same as logFC.
 
 - Note that the AveExpr refers to the average expression of each gene in the data set, regardless of groups. This is not the estimate used and tested in our model:
 
@@ -298,7 +301,7 @@ Where;
 Therefore, to summarize what we have performed so far: 
 
 1. We are fitting N (nrow(data.matrix)) of such models for each gene,
-2. Then making parameters robust by applying embrical Bayes shrinkage method (because we have only few independent measurements for each gene (or model), thus we utilize the variability from the entire data set to make our standard error estimates more robust).
+2. Then making parameters robust by applying empirical Bayes shrinkage method (because we have only few independent measurements for each gene (or model), thus we utilize the variability from the entire data set to make our standard error estimates more robust).
 3. Adjusting the p-values associated with the parameter of interest to make robust inferences (control alpha-level). 
 
 - Note that the coefficient of interest in this model is B1, which is the mean log expression difference between the two groups.
@@ -327,7 +330,7 @@ It is not uncommon that we have more than two groups in the experiment and we mi
 
 ##Preparing the data matrix
 
-For this example, let's include a 3rd group into the data.martix, which is K63. Therefore, we will have the following biological replicates for each group:
+For this example, let's include a 3rd group into the data.matrix, which is K63. Therefore, we will have the following biological replicates for each group:
 
 - column names for the two independent biological replicates of Mono-UB group:
 
@@ -460,7 +463,7 @@ This is very useful. We can identify which genes are significantly differentiall
 
 We can specify: 
 
-- a p.valule cut off for the null hypothesis test B1 = 0 for each gene, for each contrast. Defaults is 0.05.
+- a p.value cut off for the null hypothesis test B1 = 0 for each gene, for each contrast. Defaults is 0.05.
 - a method for multiple hypothesis testing correction (defaults to "BH")
 
 ```{r}
@@ -472,7 +475,7 @@ In this output, we can have all the genes as row.names, and all contrasts we req
 
 ### Use vennDiagram() function to visualize the results
 
-Another neat function limma provides is the **vennDiagram()**, which computes classification counts and draws a Venn diagram. We pass the results object created by the decideTests() function. We can also specify additional aestthetic arguments:
+Another neat function limma provides is the **vennDiagram()**, which computes classification counts and draws a Venn diagram. We pass the results object created by the decideTests() function. We can also specify additional aesthetic arguments:
 
 ```{r, fig.width= 10,fig.height=10}
 vennDiagram(results.3.group, circle.col = c("navy","red","green"), lwd = 2)
@@ -502,7 +505,7 @@ The results of the F-test (one-way ANOVA) can be readily extracted from the lmFi
 hist(fit.3.group$F.p.value, breaks = 300, col = "navy")
 ```
 
-The distributon of F-test p-values suggest that essentially not many proteins look like significantly varying across the experiments.
+The distribution of F-test p-values suggest that essentially not many proteins look like significantly varying across the experiments.
 
 Let's look at how many deemed as significant by the F-test:
 
@@ -566,7 +569,7 @@ The table is intuitively constructed. In limma, this table is also called as "ta
 
 From this target matrix we can understand that there are 12 samples in total. Each Strain class is represented by 3 treatments and each of them have 2 **independent** biological replicates.
 
-This **independence** is important because if we had resampled from the same individual (Wild-type or Mutant), we had to take into account the correlation between the observations. This would necessiate using mixed effect models. 
+This **independence** is important because if we had resampled from the same individual (Wild-type or Mutant), we had to take into account the correlation between the observations. This would necessitate using mixed effect models. 
 
 ## Set the factor levels correctly to define reference levels
 
@@ -585,7 +588,7 @@ Both of these contrasts will be represented as **interaction terms** in our mode
 
  )  
  
- Therfore, our reference levels for two factors are:
+ Therefore, our reference levels for two factors are:
  
  - Strain: Wt
  - Treatment: Mono
@@ -615,7 +618,7 @@ Great! Out data matrix is ready for modeling.
 
 ## Prepare the design matrix
 
-We previously used model.matrix() function for fitting two or multiple group comparisons. Here the formula interface is a litte different:
+We previously used model.matrix() function for fitting two or multiple group comparisons. Here the formula interface is a little different:
 
 ```{r}
 design <- model.matrix( ~ Treatment * Strain, data = annotations)
@@ -858,7 +861,7 @@ These estimates indeed correspond to the differences we defined. For instance th
 
 Since we have 6 contrasts in this case, we have 6 coefficients (estimates) and therefore, 6 p-values, and 6-sets of inferences (results) tables. 
 
-For each contrast, we can examine these results seperately. 
+For each contrast, we can examine these results separately. 
 
 For instance, 
 
@@ -920,3 +923,10 @@ combined.results.factorial <-  parseResults(fitted.contrasts,design)
 
 ```
 
+# Time-course experiments
+
+These experiments can be handled just like the TWO-WAY factorial design analysis we completed in section 5. In this case the assumption is that the samples are independent (i.e: the expression values are not repeated measurements obtained from the same sample over the time.). 
+
+The design and analysis then becomes very similar to the factorial analysis. For instance, we would investigate the impact of a treatment at 0, 6 and 12 hours in Wt and Mutant cells. This would give us 2 x 3 categories, where we can fit the models and contrasts as we performed in Section 5.
+
+In the case of repeated measures, in other words, when the assumption of independence is violated, a longitudinal analysis method will be required, which involves fitting more complex models using an appropriate covariance matrix structure. 
