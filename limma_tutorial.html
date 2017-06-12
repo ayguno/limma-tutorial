@@ -192,6 +192,14 @@ $(document).ready(function () {
 <li><a href="#fit-the-overall-model-using-lmfit"><span class="toc-section-number">5.6</span> Fit the overall model using lmFit()</a></li>
 <li><a href="#write-the-model-equation-and-understand-interpret-the-coefficients"><span class="toc-section-number">5.7</span> Write the model equation and understand interpret the coefficients</a></li>
 <li><a href="#translate-questions-into-null-hypotheses-then-into-desired-contrasts-in-model-terms"><span class="toc-section-number">5.8</span> Translate questions into null hypotheses, then into desired contrasts in model terms</a></li>
+<li><a href="#make-the-contrasts-using-makecontrasts"><span class="toc-section-number">5.9</span> Make the contrasts using makeContrasts()</a></li>
+<li><a href="#get-overall-model-estimates-and-p-value"><span class="toc-section-number">5.10</span> Get overall model estimates and p-value</a></li>
+<li><a href="#using-contrasts.fit-to-fit-model-for-the-comparisons-in-factorial-design"><span class="toc-section-number">5.11</span> Using contrasts.fit() to fit model for the comparisons in factorial design</a></li>
+<li><a href="#examine-the-coefficients-and-p-values"><span class="toc-section-number">5.12</span> Examine the coefficients and p-values</a><ul>
+<li><a href="#examine-if-the-p-values-from-the-mean.wt.k48.vs.mono-contrast-are-the-same-as-the-ones-we-obtained-in-the-simple-two-group-comparisons"><span class="toc-section-number">5.12.1</span> Examine if the p-values from the Mean.Wt.K48.vs.Mono contrast are the same as the ones we obtained in the simple two group comparisons</a></li>
+<li><a href="#examine-which-genes-respond-differently-to-k48-treatment-in-mutant-v.s-wild-type-cells"><span class="toc-section-number">5.12.2</span> Examine which genes respond differently to K48 treatment in Mutant v.s Wild-type cells?</a></li>
+<li><a href="#combine-the-model-results-into-a-single-table"><span class="toc-section-number">5.12.3</span> Combine the model results into a single table</a></li>
+</ul></li>
 </ul></li>
 </ul>
 </div>
@@ -1152,19 +1160,239 @@ design</code></pre></div>
 <p><strong>2. Which genes respond to a given treatment in Mutant cells?</strong></p>
 <p>Null hypotheses:</p>
 <ul>
-<li>H0: Mean.Mut.K48 - Mean.Mut.mono = 0</li>
-<li>H0: Mean.Mut.K63 - Mean.Mut.mono = 0</li>
+<li>H0: Mean.Mut.K48 - Mean.Mut.mono = 0, or we can write: Mean.Mut.K48.vs.Mono = 0</li>
+<li>H0: Mean.Mut.K63 - Mean.Mut.mono = 0, or we can write: Mean.Mut.K63.vs.Mono = 0</li>
 </ul>
-<p>(<strong>Relates to: Mut.K48 vs Mut.mono, Mut.K63 vs Mut.mono comparisons, two seperate comparisons</strong>)</p>
-<ol start="3" style="list-style-type: decimal">
-<li>Which genes <strong>respond differently</strong> to a given treatment in mutant compared to wild-type cells? (<strong>Relates to the difference of differences</strong>:</li>
-</ol>
+<p>Using the coefficients, these differences are represented as:</p>
+<ul>
+<li>Mean.Mut.K48.vs.Mono: B0 + B2 + B3 + B5 - (B0 + B3) = B2 + B5</li>
+<li>Mean.Wt.K63.vs.Mono: B0 + B1 + B3 + B4 - (B0 + B3) = B1 + B4</li>
+</ul>
+<p>In terms of the nicknames in our model, we can re-write:</p>
+<hr />
+<ul>
+<li>Mean.Mut.K48.vs.Mono = TreatmentK48 + TreatmentK48.StrainMut</li>
+<li>Mean.Mut.K63.vs.Mono = TreatmentK63 + TreatmentK63.StrainMut</li>
+</ul>
+<hr />
+<p>These will be the basis for our relevant contrasts.</p>
+<p><strong>3. Which genes respond differently to a given treatment in mutant compared to wild-type cells?</strong></p>
+<p><strong>Relates to the difference of differences</strong>:</p>
+<p>i.e: For which genes the treatment effects are significantly modulated by the strain type?</p>
 <ul>
 <li>For K48 treatment: [Mut.K48 - Mut.mono] - [WT.K48 - WT.mono]</li>
 <li>For K63 treatment: [Mut.K63 - Mut.mono] - [WT.K63 - WT.mono]</li>
 </ul>
-<p>Both of these contrasts will be represented as <strong>interaction terms</strong> in our model.</p>
-<p>)</p>
+<p>Null hypotheses:</p>
+<ul>
+<li>H0: [Mean.Mut.K48 - Mean.Mut.mono] - [Mean.Wt.K48 - Mean.Wt.mono] = 0</li>
+<li>H0: [Mean.Mut.K63 - Mean.Mut.mono] - [Mean.Wt.K63 - Mean.Wt.mono] = 0</li>
+</ul>
+<p>or, we can write:</p>
+<ul>
+<li>Mean.Mut.K48.vs.Mono - Mean.Wt.K48.vs.Mono = Mean.K48.Mut.vs.Wt</li>
+<li>Mean.Mut.K63.vs.Mono - Mean.Wt.K63.vs.Mono = Mean.K63.Mut.vs.Wt</li>
+</ul>
+<p>Using the coefficients, these differences are represented as:</p>
+<ul>
+<li>Mean.K48.Mut.vs.Wt = B2 + B5 - B2 = B5</li>
+<li>Mean.K63.Mut.vs.Wt = B1 + B4 - B1 = B4</li>
+</ul>
+<p>In terms of the nicknames in our model, we can re-write:</p>
+<hr />
+<ul>
+<li>Mean.K48.Mut.vs.Wt = TreatmentK48.StrainMut</li>
+<li>Mean.K63.Mut.vs.Wt = TreatmentK63.StrainMut</li>
+</ul>
+<hr />
+<p>Note that both of these contrasts are represented as <strong>interaction terms</strong> in our model!</p>
+</div>
+<div id="make-the-contrasts-using-makecontrasts" class="section level2">
+<h2><span class="header-section-number">5.9</span> Make the contrasts using makeContrasts()</h2>
+<p>That was the hard work! The rest is more straightforward. What we need to to do is to define these contrasts in the way that R can understand and prepare from the design matrix we prepared.</p>
+<p>For this purpose, we will use the makeContrasts() function we already used before. Recall that this function essentially needs two arguments;</p>
+<ol style="list-style-type: decimal">
+<li>A list of contrasts (<strong>in fitted model terms(or nicknames)</strong>)</li>
+<li>levels = design matrix</li>
+</ol>
+<p>Here, we are essentially using this function in the same way. The only difference is that we are going to use <strong>named</strong> contrasts to explicitly define the contrasts inside the function.</p>
+<p><strong>Another important fact to notice about makeContrasts() is the flexible way we define the contrasts inside the function using arithmetic operators. This provides a handy way to virtually engineer various possible combinations of contrasts that might not be immediately available as model coefficients to us. This becomes more critical as the model complexity increases.</strong></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">contrasts &lt;-<span class="st"> </span><span class="kw">makeContrasts</span>(
+  <span class="co"># Which genes respond to a given treatment in Wt cells?</span>
+  <span class="dt">Mean.Wt.K48.vs.Mono =</span> TreatmentK48,
+  <span class="dt">Mean.Wt.K63.vs.Mono =</span> TreatmentK63,
+  
+  <span class="co"># Which genes respond to a given treatment in Mut cells?</span>
+  <span class="dt">Mean.Mut.K48.vs.Mono =</span>  TreatmentK48 <span class="op">+</span><span class="st"> </span>TreatmentK48.StrainMut,
+  <span class="dt">Mean.Mut.K63.vs.Mono =</span>  TreatmentK63 <span class="op">+</span><span class="st"> </span>TreatmentK63.StrainMut,
+  
+  <span class="co"># Which genes respond differently to a given treatment in mutant compared to wild-type cells?</span>
+  <span class="dt">Mean.K48.Mut.vs.Wt =</span> TreatmentK48.StrainMut,
+  <span class="dt">Mean.K63.Mut.vs.Wt =</span> TreatmentK63.StrainMut 
+  
+, <span class="dt">levels =</span> design)
+
+<span class="kw">rownames</span> (contrasts)[<span class="dv">1</span>] &lt;-<span class="st"> '(Intercept)'</span>
+contrasts</code></pre></div>
+<pre><code>##                         Contrasts
+## Levels                   Mean.Wt.K48.vs.Mono Mean.Wt.K63.vs.Mono
+##   (Intercept)                              0                   0
+##   TreatmentK63                             0                   1
+##   TreatmentK48                             1                   0
+##   StrainMut                                0                   0
+##   TreatmentK63.StrainMut                   0                   0
+##   TreatmentK48.StrainMut                   0                   0
+##                         Contrasts
+## Levels                   Mean.Mut.K48.vs.Mono Mean.Mut.K63.vs.Mono
+##   (Intercept)                               0                    0
+##   TreatmentK63                              0                    1
+##   TreatmentK48                              1                    0
+##   StrainMut                                 0                    0
+##   TreatmentK63.StrainMut                    0                    1
+##   TreatmentK48.StrainMut                    1                    0
+##                         Contrasts
+## Levels                   Mean.K48.Mut.vs.Wt Mean.K63.Mut.vs.Wt
+##   (Intercept)                             0                  0
+##   TreatmentK63                            0                  0
+##   TreatmentK48                            0                  0
+##   StrainMut                               0                  0
+##   TreatmentK63.StrainMut                  0                  1
+##   TreatmentK48.StrainMut                  1                  0</code></pre>
+<p>Notice that we had to rename the first rowname since makeContrasts stripped of the ‘( )’ in the original name.</p>
+<p>Therefore, we have explicitly prepared the 6 contrasts we are interested in. In the subsequent stages, we will fit these contrasts and obtain estimates for them. In each case, we will also obtain an adjusted p-value that tests the null hypothesis associated with each contrast we described above.</p>
+</div>
+<div id="get-overall-model-estimates-and-p-value" class="section level2">
+<h2><span class="header-section-number">5.10</span> Get overall model estimates and p-value</h2>
+<p>This is an optional step but could be useful to get the estimates for the overall model fit for each gene:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fit.overall &lt;-<span class="st"> </span><span class="kw">eBayes</span>(<span class="dt">fit =</span> fit.factorial, <span class="dt">robust =</span> <span class="ot">TRUE</span>)
+overall.results &lt;-<span class="st"> </span><span class="kw">toptable</span>(fit.overall, <span class="dt">number =</span> <span class="kw">nrow</span>(fit.overall), <span class="dt">adjust.method =</span> <span class="st">&quot;fdr&quot;</span>)
+<span class="kw">head</span>(overall.results)</code></pre></div>
+<pre><code>##          logFC         t      P.Value    adj.P.Val         B
+## P22314  1.3095  21.18343 4.744871e-09 1.887035e-05 10.593384
+## J3QRK5  2.5475  17.83440 2.193808e-08 2.996350e-05  9.484305
+## P10515 -1.8165 -17.77445 2.260259e-08 2.996350e-05  9.461445
+## Q9UBN7  1.7480  15.88330 6.105877e-08 6.055461e-05  8.674813
+## P62979  2.3430  15.22669 8.850478e-08 6.055461e-05  8.368947
+## P62987  2.4105  15.17178 9.135722e-08 6.055461e-05  8.342523</code></pre>
+<p>Note that this overall model results do not mean much about our specific hypotheses.</p>
+</div>
+<div id="using-contrasts.fit-to-fit-model-for-the-comparisons-in-factorial-design" class="section level2">
+<h2><span class="header-section-number">5.11</span> Using contrasts.fit() to fit model for the comparisons in factorial design</h2>
+<p>This step is no longer a new theme for us. We are simply going to use the contrasts.fit() function to fit the model for the specific contrasts we defined above.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fitted.contrasts &lt;-<span class="st"> </span><span class="kw">contrasts.fit</span>(<span class="dt">fit =</span> fit.factorial, <span class="dt">contrasts =</span> contrasts)
+fitted.contrasts &lt;-<span class="st"> </span><span class="kw">eBayes</span>(fitted.contrasts)</code></pre></div>
+</div>
+<div id="examine-the-coefficients-and-p-values" class="section level2">
+<h2><span class="header-section-number">5.12</span> Examine the coefficients and p-values</h2>
+<p>Let’s examine the coefficients estimated by our model fit:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(<span class="kw">coef</span>(fitted.contrasts))</code></pre></div>
+<pre><code>##           Contrasts
+##            Mean.Wt.K48.vs.Mono Mean.Wt.K63.vs.Mono Mean.Mut.K48.vs.Mono
+##   P35579                0.1070              0.0440               0.1005
+##   P35580                0.1035              0.0370               0.1075
+##   P35580-2              0.1040              0.0365               0.1085
+##   P35580-5              0.1035              0.0360               0.1085
+##   Q7Z406-6              0.1075              0.0620               0.1025
+##   Q9Y4I1                0.0850              0.0370               0.0740
+##           Contrasts
+##            Mean.Mut.K63.vs.Mono Mean.K48.Mut.vs.Wt Mean.K63.Mut.vs.Wt
+##   P35579                 0.0470            -0.0065             0.0030
+##   P35580                 0.0510             0.0040             0.0140
+##   P35580-2               0.0510             0.0045             0.0145
+##   P35580-5               0.0510             0.0050             0.0150
+##   Q7Z406-6               0.0800            -0.0050             0.0180
+##   Q9Y4I1                 0.0335            -0.0110            -0.0035</code></pre>
+<p>Note that we have obtained an estimate for each contrast we defined.</p>
+<p>These estimates indeed correspond to the differences we defined. For instance the coefficients returned for the Mean.Wt.K48.vs.Mono contrast are simply the logFC we obtained in our simple-two sample comparison previously (see 3.4). Therefore, it is nice to see that our model is built up on and is able to extract those individual comparisons we had investigated previously.</p>
+<p>Since we have 6 contrasts in this case, we have 6 coefficients (estimates) and therefore, 6 p-values, and 6-sets of inferences (results) tables.</p>
+<p>For each contrast, we can examine these results seperately.</p>
+<p>For instance,</p>
+<div id="examine-if-the-p-values-from-the-mean.wt.k48.vs.mono-contrast-are-the-same-as-the-ones-we-obtained-in-the-simple-two-group-comparisons" class="section level3">
+<h3><span class="header-section-number">5.12.1</span> Examine if the p-values from the Mean.Wt.K48.vs.Mono contrast are the same as the ones we obtained in the simple two group comparisons</h3>
+<p>Note that Mean.Wt.K48.vs.Mono is the first coefficient in the contrasts matrix, so we will extract the respective results using the topTable:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">results.Mean.Wt.K48.vs.Mono &lt;-<span class="st"> </span><span class="kw">toptable</span>(fitted.contrasts, <span class="dt">coef =</span> <span class="dv">1</span>,<span class="dt">number =</span> <span class="kw">nrow</span>(d) , <span class="dt">adjust.method =</span> <span class="st">&quot;fdr&quot;</span>, <span class="dt">sort.by =</span> <span class="st">&quot;none&quot;</span>, <span class="dt">confint =</span> <span class="ot">TRUE</span>)
+
+<span class="kw">head</span>(results.Mean.Wt.K48.vs.Mono)</code></pre></div>
+<pre><code>##           logFC       CI.L      CI.R         t   P.Value adj.P.Val
+## P35579   0.1070 -0.1643627 0.3783627 0.8905965 0.3960986 0.9968465
+## P35580   0.1035 -0.1516708 0.3586708 0.9161295 0.3832528 0.9968465
+## P35580-2 0.1040 -0.1519666 0.3599666 0.9176932 0.3824759 0.9968465
+## P35580-5 0.1035 -0.1525274 0.3595274 0.9130643 0.3847790 0.9968465
+## Q7Z406-6 0.1075 -0.1466022 0.3616022 0.9555370 0.3640187 0.9968465
+## Q9Y4I1   0.0850 -0.1822934 0.3522934 0.7182542 0.4906430 0.9968465
+##                  B
+## P35579   -5.137199
+## P35580   -5.117955
+## P35580-2 -5.116762
+## P35580-5 -5.120288
+## Q7Z406-6 -5.087404
+## Q9Y4I1   -5.255145</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(two.group.significance)</code></pre></div>
+<pre><code>##           logFC       CI.L      CI.R  AveExpr         t   P.Value
+## P35579   0.1070 -0.2353514 0.4493514  0.00550 0.7849829 0.4653676
+## P35580   0.1035 -0.2095431 0.4165431  0.02375 0.8303950 0.4413375
+## P35580-2 0.1040 -0.2091444 0.4171444  0.02550 0.8341367 0.4393991
+## P35580-5 0.1035 -0.2097475 0.4167475  0.02575 0.8298533 0.4416186
+## Q7Z406-6 0.1075 -0.2177486 0.4327486 -0.00725 0.8301213 0.4414795
+## Q9Y4I1   0.0850 -0.2332670 0.4032670  0.05900 0.6707734 0.5298810
+##          adj.P.Val         B
+## P35579   0.9967203 -5.296919
+## P35580   0.9967203 -5.263949
+## P35580-2 0.9967203 -5.261171
+## P35580-5 0.9967203 -5.264350
+## Q7Z406-6 0.9967203 -5.264152
+## Q9Y4I1   0.9967203 -5.373378</code></pre>
+<p>Great! Note that even though the estimates are the same as expected, the p-values and confidence intervals are changed. This is because the inferences are made in the context of the entire regression model and effects are adjusted to other covariates fitted in the same model.</p>
+<p>We notice that overall p -values are getting slightly lower for each gene in the context of the large model, however adjusted p-values imply the same inference (i.e: failed to reject H0)</p>
+</div>
+<div id="examine-which-genes-respond-differently-to-k48-treatment-in-mutant-v.s-wild-type-cells" class="section level3">
+<h3><span class="header-section-number">5.12.2</span> Examine which genes respond differently to K48 treatment in Mutant v.s Wild-type cells?</h3>
+<p>Recall that we refined this question into a single coefficient, which is the interaction term between K48 and Mut in our model. The nickname of the contrast is: <strong>Mean.K48.Mut.vs.Wt</strong></p>
+<p>Note that this is the 5th contrast in the fitted.contrasts object:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">results.Mean.K48.Mut.vs.Wt &lt;-<span class="st"> </span><span class="kw">topTable</span>(<span class="dt">fit =</span> fitted.contrasts, <span class="dt">coef =</span> <span class="dv">5</span>, <span class="dt">adjust.method =</span> <span class="st">&quot;fdr&quot;</span>, <span class="dt">sort.by =</span> <span class="st">&quot;none&quot;</span>, <span class="dt">confint =</span> <span class="ot">TRUE</span>, <span class="dt">number =</span> <span class="kw">nrow</span>(d))
+<span class="kw">head</span>(results.Mean.K48.Mut.vs.Wt)</code></pre></div>
+<pre><code>##            logFC       CI.L      CI.R      AveExpr           t   P.Value
+## P35579   -0.0065 -0.3902649 0.3772649  0.005000000 -0.03825565 0.9703106
+## P35580    0.0040 -0.3568660 0.3648660  0.021833333  0.02503580 0.9805672
+## P35580-2  0.0045 -0.3574914 0.3664914  0.023500000  0.02807771 0.9782068
+## P35580-5  0.0050 -0.3570774 0.3670774  0.023583333  0.03119005 0.9757919
+## Q7Z406-6 -0.0050 -0.3643547 0.3543547 -0.003833333 -0.03142636 0.9756085
+## Q9Y4I1   -0.0110 -0.3890099 0.3670099  0.054000000 -0.06572596 0.9490184
+##          adj.P.Val         B
+## P35579           1 -4.828366
+## P35580           1 -4.828539
+## P35580-2         1 -4.828506
+## P35580-5         1 -4.828468
+## Q7Z406-6         1 -4.828464
+## Q9Y4I1           1 -4.827775</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">hist</span>(results.Mean.K48.Mut.vs.Wt<span class="op">$</span>P.Value, <span class="dt">col =</span> <span class="st">&quot;navy&quot;</span>, <span class="dt">breaks =</span> <span class="dv">100</span>)</code></pre></div>
+<p><img src="data:image/png;base64,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" width="768" style="display: block; margin: auto;" /></p>
+<p>The overall distribution of p-values suggest that it is unlikely any genes display change based on this contrast.</p>
+</div>
+<div id="combine-the-model-results-into-a-single-table" class="section level3">
+<h3><span class="header-section-number">5.12.3</span> Combine the model results into a single table</h3>
+<p>We can keep investigating the individual contrasts one-by-one, or we can combine them into a single results table where each row corresponds to a gene and each column corresponds to a results parameter for a given contrast. Since result outputs are generic, we need to append them with contrast names to distinguish in the final results table.</p>
+<p>I wrote a function that could be useful for this purpose.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">parseResults &lt;-<span class="st"> </span><span class="cf">function</span>(fit,contrasts){
+        <span class="co"># fit: contrast model fit object generated by lmFit() and then contrasts.fit()</span>
+        <span class="co"># contrasts: the contrasts matrix used to generate the model, containing desired contrasts</span>
+        <span class="kw">require</span>(limma)
+        contrasts &lt;-<span class="st"> </span><span class="kw">data.frame</span>(contrasts)
+        n &lt;-<span class="st"> </span><span class="kw">nrow</span>(fit<span class="op">$</span>coefficients)
+        results &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">id =</span> <span class="kw">row.names</span>(fit<span class="op">$</span>coefficients))
+        <span class="cf">for</span>(i <span class="cf">in</span> <span class="kw">seq_along</span>(<span class="kw">names</span>(contrasts))){
+             temp.results &lt;-<span class="st"> </span><span class="kw">topTable</span>(<span class="dt">fit =</span> fit, <span class="dt">coef =</span> i, <span class="dt">confint =</span> <span class="ot">FALSE</span>, <span class="dt">sort.by =</span> <span class="st">&quot;none&quot;</span>,
+                                      <span class="dt">adjust.method =</span> <span class="st">&quot;fdr&quot;</span>, <span class="dt">number =</span> n)
+             <span class="kw">colnames</span>(temp.results) &lt;-<span class="st"> </span><span class="kw">paste</span>(<span class="kw">colnames</span>(temp.results),<span class="kw">colnames</span>(contrasts[i]), <span class="dt">sep =</span> <span class="st">&quot;.&quot;</span>)
+             results &lt;-<span class="st"> </span><span class="kw">cbind</span>(results,temp.results)
+        }
+        <span class="kw">return</span>(results)
+        
+        
+}
+
+combined.results.factorial &lt;-<span class="st">  </span><span class="kw">parseResults</span>(fitted.contrasts,design)</code></pre></div>
+</div>
 </div>
 </div>
 
