@@ -684,7 +684,7 @@ These coefficients have their own interpretations:
 
 Note that not all of the questions we are interested in are directly available from the model coefficients. This doesn't mean we can not construct the contrasts we are interested in. We will derive these contrasts to fit exactly the questions we are interested in. The model coefficients and their interpretation we already described will become handy during these operations.
 
-## Define the desired contrasts in model terms
+## Translate questions into null hypotheses, then into desired contrasts in model terms
 
 This is the critical part. We need to recall our questions and **associated null hypotheses(H0)** to fit construct the relevant contrasts.
 
@@ -716,16 +716,39 @@ Using the coefficients, these differences are represented as:
 
 In terms of the nicknames in our model, we can re-write:
 
+___
+
 - Mean.Wt.K48.vs.Mono = TreatmentK48
 - Mean.Wt.K63.vs.Mono = TreatmentK63
+
+___
 
 These will be the basis for our relevant contrasts.
 
 
-2. Which genes respond to a given treatment in Mutant cells? 
+**2. Which genes respond to a given treatment in Mutant cells?** 
 
+Null hypotheses:
+
+- H0: Mean.Mut.K48 - Mean.Mut.mono = 0, or we can write: Mean.Mut.K48.vs.Mono = 0
+- H0: Mean.Mut.K63 - Mean.Mut.mono = 0, or we can write: Mean.Mut.K63.vs.Mono = 0
+
+Using the coefficients, these differences are represented as:
+
+-  Mean.Mut.K48.vs.Mono: B0 + B2 + B3 + B5 - (B0 + B3) = B2 + B5
+-  Mean.Wt.K63.vs.Mono: B0 + B1 + B3 + B4 - (B0 + B3) = B1 + B4
+
+In terms of the nicknames in our model, we can re-write:
+
+___
+
+- Mean.Mut.K48.vs.Mono =  
+- Mean.Mut.K63.vs.Mono = 
+
+___
 
 (**Relates to: Mut.K48 vs Mut.mono, Mut.K63 vs Mut.mono comparisons, two seperate comparisons**)
+
 3. Which genes **respond differently** to a given treatment in mutant compared to wild-type cells? (**Relates to the difference of differences**: 
 
 - For K48 treatment: [Mut.K48 - Mut.mono] - [WT.K48 - WT.mono]

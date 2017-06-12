@@ -191,6 +191,7 @@ $(document).ready(function () {
 <li><a href="#prepare-the-design-matrix"><span class="toc-section-number">5.5</span> Prepare the design matrix</a></li>
 <li><a href="#fit-the-overall-model-using-lmfit"><span class="toc-section-number">5.6</span> Fit the overall model using lmFit()</a></li>
 <li><a href="#write-the-model-equation-and-understand-interpret-the-coefficients"><span class="toc-section-number">5.7</span> Write the model equation and understand interpret the coefficients</a></li>
+<li><a href="#translate-questions-into-null-hypotheses-then-into-desired-contrasts-in-model-terms"><span class="toc-section-number">5.8</span> Translate questions into null hypotheses, then into desired contrasts in model terms</a></li>
 </ul></li>
 </ul>
 </div>
@@ -1116,6 +1117,54 @@ design</code></pre></div>
 <li><strong>B5: TreatmentK48.StrainMut:</strong> mean logFC difference of ([TreatmentK48 - TreatmentMono] in StrainMut) - ([TreatmentK48 - TreatmentMono] in StrainWt)</li>
 </ul>
 <p>Note that not all of the questions we are interested in are directly available from the model coefficients. This doesn’t mean we can not construct the contrasts we are interested in. We will derive these contrasts to fit exactly the questions we are interested in. The model coefficients and their interpretation we already described will become handy during these operations.</p>
+</div>
+<div id="translate-questions-into-null-hypotheses-then-into-desired-contrasts-in-model-terms" class="section level2">
+<h2><span class="header-section-number">5.8</span> Translate questions into null hypotheses, then into desired contrasts in model terms</h2>
+<p>This is the critical part. We need to recall our questions and <strong>associated null hypotheses(H0)</strong> to fit construct the relevant contrasts.</p>
+<p>Remember our model and categorical variables:</p>
+<p>Log Exp Ratio = B0 + B1 * K63 + B2 * K48 + B3 * Mut + B4 * K63.Mut + B5 * K48.Mut</p>
+<p>where the <strong>invisible</strong> categorical variables are:</p>
+<ul>
+<li>K63 = 1 when the treatment is K63 and 0 otherwise</li>
+<li>K48 = 1 when the treatment is K48 and 0 otherwise</li>
+<li>Mut = 1 when the strain is Mutant and 0 if it is Wild-type</li>
+</ul>
+<p>Questions we seek answers:</p>
+<p><strong>1. Which genes respond to a given treatment in Wt cells?</strong></p>
+<p>Null hypotheses:</p>
+<ul>
+<li>H0: Mean.WT.K48 - Mean.WT.mono = 0 ,or we can write: Mean.Wt.K48.vs.Mono = 0</li>
+<li>H0: Mean.WT.K63 - Mean.WT.mono = 0 ,or we can write: Mean.Wt.K63.vs.Mono = 0</li>
+</ul>
+<p>Using the coefficients, these differences are represented as:</p>
+<ul>
+<li>Mean.Wt.K48.vs.Mono = B0 + B2 - B0 = B2</li>
+<li>Mean.Wt.K63.vs.Mono = B0 + B1 - B0 = B1</li>
+</ul>
+<p>In terms of the nicknames in our model, we can re-write:</p>
+<hr />
+<ul>
+<li>Mean.Wt.K48.vs.Mono = TreatmentK48</li>
+<li>Mean.Wt.K63.vs.Mono = TreatmentK63</li>
+</ul>
+<hr />
+<p>These will be the basis for our relevant contrasts.</p>
+<p><strong>2. Which genes respond to a given treatment in Mutant cells?</strong></p>
+<p>Null hypotheses:</p>
+<ul>
+<li>H0: Mean.Mut.K48 - Mean.Mut.mono = 0</li>
+<li>H0: Mean.Mut.K63 - Mean.Mut.mono = 0</li>
+</ul>
+<p>(<strong>Relates to: Mut.K48 vs Mut.mono, Mut.K63 vs Mut.mono comparisons, two seperate comparisons</strong>)</p>
+<ol start="3" style="list-style-type: decimal">
+<li>Which genes <strong>respond differently</strong> to a given treatment in mutant compared to wild-type cells? (<strong>Relates to the difference of differences</strong>:</li>
+</ol>
+<ul>
+<li>For K48 treatment: [Mut.K48 - Mut.mono] - [WT.K48 - WT.mono]</li>
+<li>For K63 treatment: [Mut.K63 - Mut.mono] - [WT.K63 - WT.mono]</li>
+</ul>
+<p>Both of these contrasts will be represented as <strong>interaction terms</strong> in our model.</p>
+<p>)</p>
 </div>
 </div>
 
