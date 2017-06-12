@@ -1041,7 +1041,7 @@ design</code></pre></div>
 <li>intercept</li>
 </ul>
 <p>Note that the intercept represents the mean logFC for a gene in the both reference categories, which is TreatmentMono.StrainWt. All other coefficients are relative to this term.</p>
-<p>Before going into the details of the model, we need one edit in the column names. The colon (:) in the interaction term names needs to be replaced. This is because the downstream function make.contrasts() can not handle these types of special charecters in column names.</p>
+<p><strong>Before going into the details of the model, we need one edit in the column names. The colon (:) in the interaction term names needs to be replaced. This is because the downstream function make.contrasts() can not handle these types of special charecters in column names.</strong></p>
 <p>We replace “:” by “.” in the column names of the design matrix:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">colnames</span>(design) &lt;-<span class="st"> </span><span class="kw">sapply</span>(<span class="kw">colnames</span>(design), <span class="cf">function</span>(x){<span class="kw">gsub</span>(<span class="st">&quot;:&quot;</span>,<span class="st">&quot;.&quot;</span>,x)})
 design</code></pre></div>
@@ -1089,14 +1089,14 @@ design</code></pre></div>
 <div id="write-the-model-equation-and-understand-interpret-the-coefficients" class="section level2">
 <h2><span class="header-section-number">5.7</span> Write the model equation and understand interpret the coefficients</h2>
 <p>As always, writing down the equation is critical. Here we have the following model:</p>
-<p>Log Exp Ratio = B0 + B1 * K63 + B2 * K48 + B3 * Mut + B4 * K63.Mut + K48.Mut</p>
-<p>where;</p>
+<p>Log Exp Ratio = B0 + B1 * K63 + B2 * K48 + B3 * Mut + B4 * K63.Mut + B5 * K48.Mut</p>
+<p>where the <strong>invisible</strong> categorical variables are:</p>
 <ul>
 <li>K63 = 1 when the treatment is K63 and 0 otherwise</li>
 <li>K48 = 1 when the treatment is K48 and 0 otherwise</li>
 <li>Mut = 1 when the strain is Mutant and 0 if it is Wild-type</li>
 </ul>
-<p>In our encoded model (design matrix) the coefficients are represented as:</p>
+<p>In our encoded model (design matrix) the coefficients are nicknamed as:</p>
 <ul>
 <li>B0: (Intercept)</li>
 <li>B1: TreatmentK63</li>
@@ -1108,12 +1108,12 @@ design</code></pre></div>
 <p>These coefficients have their own interpretations:</p>
 <ul>
 <li><strong>B0: (Intercept):</strong> mean logFC in the TreatmentMono and StrainWt</li>
-<li><strong>B1: TreatmentK63:</strong> mean logFC difference of [TreatmentK63 - TreatmentMono] in StrainWt (TreatmentK63 effect in the Wt strain)<br />
+<li><strong>B1: TreatmentK63:</strong> mean logFC difference of [TreatmentK63 - TreatmentMono] in StrainWt (i.e: TreatmentK63 effect in the Wt strain)<br />
 </li>
-<li><strong>B2: TreatmentK48:</strong> mean logFC difference of [TreatmentK48 - TreatmentMono] in StrainWt (TreatmentK48 effect in the Wt strain)</li>
-<li><strong>B3: StrainMut:</strong> mean logFC difference of [StrainMut - StrainWt] under TreatmentMono condition (strain effect at the baseline treatment level)</li>
-<li><strong>B4: TreatmentK63.StrainMut:</strong> mean logFC difference of</li>
-<li><strong>B5: TreatmentK48.StrainMut:</strong> mean logFC difference of</li>
+<li><strong>B2: TreatmentK48:</strong> mean logFC difference of [TreatmentK48 - TreatmentMono] in StrainWt (i.e: TreatmentK48 effect in the Wt strain)</li>
+<li><strong>B3: StrainMut:</strong> mean logFC difference of [StrainMut - StrainWt] under TreatmentMono condition (i.e: strain effect at the baseline treatment level)</li>
+<li><strong>B4: TreatmentK63.StrainMut:</strong> mean logFC difference of ([TreatmentK63 - TreatmentMono] in StrainMut) - ([TreatmentK63 - TreatmentMono] in StrainWt)</li>
+<li><strong>B5: TreatmentK48.StrainMut:</strong> mean logFC difference of ([TreatmentK48 - TreatmentMono] in StrainMut) - ([TreatmentK48 - TreatmentMono] in StrainWt)</li>
 </ul>
 <p>Note that not all of the questions we are interested in are directly available from the model coefficients. This doesn’t mean we can not construct the contrasts we are interested in. We will derive these contrasts to fit exactly the questions we are interested in. The model coefficients and their interpretation we already described will become handy during these operations.</p>
 </div>
